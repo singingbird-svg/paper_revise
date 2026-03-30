@@ -51,14 +51,13 @@
 — Coordinating task allocation and planning for a
 heterogeneous multi-robot system is very challenging under
 communication and temporal logic constraints. To address this,
-a decomposition-based semi-distributed task allocation and planning
-with resilient collaborative subtask allocation (D2TAPR) is
-developed,where ``semi'' arises from leader-based coordination during collaborative subtasks. The global task specified in linear temporal logic
+we develop a decomposition-based semi-distributed task allocation and planning
+framework ($\mathrm{D}^{2}\mathrm{TAPR}$). Its semi-distributed nature arises from leader-based coordination during collaborative subtasks. The global task specified in linear temporal logic
 (LTL) is translated into a pruned Buchi automaton and ¨
 decomposed into subtasks. Optional subtasks are planned via
 a consensus-based timetable algorithm. Collaborative subtasks
 requiring multiple robots are handled via leader-based coordination with timeout-triggered recruitment, while failed
-subtasks are reassigned via a free-market-based mechanism,
+subtasks are reassigned through a free-market-based mechanism,
 which designates a region called free market for information
 exchange and subtask redistribution. A patrol mechanism is
 triggered when prerequisite subtasks required by temporal logic
@@ -199,11 +198,11 @@ iii) the robot team contains sufficient robots.
 To make the algorithm description clearer, this section first provides a high-level overview and then presents the key modules of the proposed $\mathrm{D}^{2}\mathrm{TAPR}$ algorithm in detail. 
 
 \subsection{Overview}
-As shown in Fig.~\ref{overall}, the overall workflow has two stages. In stage 1 (task preprocessing), the global sc-LTL specification is converted into an NBA, and the NBA is then pruned and decomposed to obtain executable subtasks and their temporal dependencies. In stage 2 (task allocation and planning), robots assign subtasks via a consensus-based timetable algorithm(CBTA) under limited communication, with additional handling for collaborative subtasks and a patrol mechanism for blocked-task information collection.
+As shown in Fig.~\ref{overall}, the overall workflow has two stages. In stage 1 (task preprocessing), the global sc-LTL specification is converted into an NBA, and the NBA is then pruned and decomposed to obtain executable subtasks and their temporal dependencies. In stage 2 (task allocation and planning), robots assign subtasks via a consensus-based timetable algorithm(CBTA) under limited communication, with additional handling for collaborative subtasks and a patrol mechanism for prerequisite-information collection.
 
-For each collaborative subtask, the first robot reaching the target region becomes a temporary leader. The leader waits until a dynamically updated deadline; if the arrived team still does not meet the required robot types and team size, it first recruits robots reachable through direct or multi-hop communication. If the team is still incomplete, it checks whether current arrivals, together with reachable robots and robots in the free-market region, can still meet the requirements. If they can, the leader sends the nearest recruiter to the free market; otherwise, the subtask is declared failed. The subtask is also declared failed if recruitment is not completed within the specified time window. Failed collaborative subtasks are replanned in the free-market region based on estimated task completion time and task priority.
+For each collaborative subtask, the first robot reaching the target region becomes a temporary leader. The leader waits until the collaboration waiting time expires; if the arrived team still does not meet the required robot types and team size, it first recruits robots reachable through direct or multi-hop communication. If the team is still incomplete, it checks whether current arrivals, together with reachable robots and robots in the free market, satisfy the required robot types and team size. If so, the leader sends the nearest recruiter to the free market; otherwise, the subtask is declared failed. The subtask is also declared failed if recruitment is not completed within the recruiter timeout. Failed collaborative subtasks are reassigned in the free market based on estimated task completion time and task priority.
 
-To prevent robots from getting stuck while waiting for information indicating that the remaining tasks can begin execution, the patrol mechanism lets robots that have not received such information for a long time actively patrol to collect it, so blocked subtasks can be released and execution can continue.
+To prevent robots from getting stuck while waiting for information indicating that the remaining tasks can begin execution, the patrol mechanism lets robots actively patrol once prerequisite completion remains unconfirmed beyond the estimated completion time, so blocked subtasks can be released and execution can continue.
 
 \begin{figure*}[t]
 \centering
@@ -341,7 +340,7 @@ $S_{m,k}(\tau_n) = \{\tau_m, q_m, a_m, t_a^m, t_s^m, p_m, \Pi_m(\tau_n)\}$, wher
 
 Using the robot-state information set   $S_k(\tau_n)$, the unassigned subtask set $T^k_{\mathrm{not}}(\tau_n)$, and the completed subtask set $T^k_{\mathrm{already}}(\tau_n)$, robot $r_k$ periodically checks for conflicts while executing $a_j \in \mathrm{LA}(q_i)$:
 i) Conflict caused by task completion:  At each check, $r_k$  verifies whether $q_i$ has entered $T^k_{\mathrm{already}}(\tau_n)$. If yes, the current commitment is immediately invalidated because further motion for $q_i$ is redundant and may delay other pending tasks. Robot $r_k$ then stops and replans.
-ii) Over-assignment: If the number of robots committed to $a_j$ exceeds the required cardinality $\mathrm{LR}(a_j)$, robot $r_k$ ranks all committed robots by their remaining travel time to the target region (smallest $t_l^m$ first) and keeps only the first $\mathrm{LR}(a_j)$ robots as valid executors of $a_j$. If multiple robots have the same $t_l^m$, the tie is broken by robot ID in ascending order. If $r_k$ is not selected after this filtering step, it immediately stops the current commitment and replans.
+ii) Over-assignment: If the number of robots committed to $a_j$ exceeds the required cardinality $\mathrm{LR}(a_j)$, robot $r_k$ ranks all committed robots by their remaining travel time to the target region (smallest $t_a^m$ first) and keeps only the first $\mathrm{LR}(a_j)$ robots as valid executors of $a_j$. If multiple robots have the same $t_a^m$, the tie is broken by robot ID in ascending order. If $r_k$ is not selected after this filtering step, it immediately stops the current commitment and replans.
 
 % For non-collaborative subtasks, 	extit{failure} specifically means that the assigned robot cannot complete the subtask because of robot-level contingencies (e.g., robot faults or similar unexpected malfunctions). Robots may become unavailable due to such events; therefore, each robot uses a timeout-based rule to assess peer status. For a subtask currently executed by robot $r_m$, if no completion message for that subtask is received (directly or indirectly) within a specified threshold, other robots infer that $r_m$ may have failed, which may render the subtask uncompletable.
 
@@ -418,9 +417,9 @@ where $x_{\mathrm{free}}$ is the center of the free market. This equation is a w
 
 
 
-For collaborative subtasks, robots adopt a leader-based coordination strategy, where one robot serves as a temporary coordinator to collect arrivals, synchronize decisions, and issue recruitment actions. Compared with fully leaderless coordination, this design reduces negotiation overhead and decision inconsistency, thereby improving coordination efficiency and execution robustness.
+For collaborative subtasks, robots adopt a leader-based coordination strategy, where one robot serves as a temporary leader to collect arrivals, synchronize decisions, and issue recruitment actions. Compared with fully leaderless coordination, this design reduces negotiation overhead and decision inconsistency, thereby improving coordination efficiency and execution robustness.
 
-The handling flow is as follows: robots first synchronize arrivals under leader coordination; if the required team cannot be formed within the waiting time, timeout-triggered recruitment is activated; if recruitment still fails, the subtask is regarded as failed, and failed subtasks are handled in the free market. 
+The handling flow is as follows: robots first synchronize arrivals under leader coordination; if the required team cannot be formed within the collaboration waiting time, timeout-triggered recruitment is activated; if recruitment still fails, the subtask is regarded as failed, and failed subtasks are reassigned in the free market. 
 
 Upon arriving at a subtask region, robot $r_k$ broadcasts an arrival signal $e_k = \{t_e^k, q_k, a_k\}$, where $t_e^k$ is the arrival timestamp at the task region, and $q_k$ and $a_k$ denote the current subtask and the action performed by $r_k$, respectively. The robot that arrives at the task region first is selected as the leader $r_l$ to prevent conflicts from asynchronous arrivals. If the number of robots that have arrived within $T_\mathrm{wait}$ seconds satisfies the requirement of subtask $q_k$, the leader broadcasts a start signal at that moment, and the robots start executing the collaborative subtask. Otherwise, if the waiting time exceeds $T_\mathrm{wait}$, timeout-triggered recruitment is initiated. 
 
@@ -654,7 +653,7 @@ ii) Recruitment process is interrupted by emergency subtask recruitment. Since $
 The feasibility of CBTA is discussed in \cite{wang2022consensus}. Under assumption iii), incomplete subtasks arise from:
 i) missing prerequisite subtask information,
 ii) insufficient teammates, or
-iii) expected robots fail to reach the target region.
+iii) robots expected to participate in a collaborative subtask do not reach the target region within the collaboration waiting time or the subsequent recruitment timeout.
 Case i) is resolved by the patrol mechanism.
 In cases ii) and iii), insufficient teammates and subtask failures eventually lead robots to enter the free market, since $|\mathcal{Q}|<\infty$. By Lemma 1, all subtasks will ultimately be completed.
 
@@ -835,7 +834,7 @@ The smaller gaps in instances such as Inst.3 and Inst.16 are also informative: w
 
 At $D=10$\,m, with regions $l_1 \sim l_{12}$ arranged as shown in Fig.~\ref{workspace}, Test~2 evaluates the proposed framework under dynamic changes in team composition by introducing both robot addition and robot removal during task execution. At $t=15$, a new type-3 robot, $r_{13}$, joins the system. After entering the communication range and synchronizing with the team, $r_{13}$ is incorporated into the candidate set and assigned to subtask $q_2$. This online reallocation updates the task assignment according to the new team composition, thereby reducing the burden on the original team and yielding a plan suited to the expanded set of available robots.
 
-Later, at $t=80$, robot $r_{10}$ is removed, leaving collaborative subtask $q_1$ understaffed. In response, the leader robot $r_{11}$ keeps the remaining participants in a waiting state while checking whether the missing role can be filled locally. Once the waiting time exceeds $T_\mathrm{col}$, $r_{11}$ activates the timeout-based recovery mechanism and dispatches $r_9$ as a recruiter to seek a qualified replacement. After recruitment succeeds, the team is re-formed, and $q_1$ is eventually completed by $r_{11}$, $r_{13}$, and $r_9$ (Fig.~\ref{add}).
+Later, at $t=80$, robot $r_{10}$ is removed, leaving collaborative subtask $q_1$ understaffed. In response, the leader robot $r_{11}$ keeps the remaining participants in a waiting state while checking whether the missing role can be filled locally. Once the waiting time exceeds $T_\mathrm{wait}$, $r_{11}$ activates the timeout-based recovery mechanism and dispatches $r_9$ as a recruiter to seek a qualified replacement. After recruitment succeeds, the team is re-formed, and $q_1$ is eventually completed by $r_{11}$, $r_{13}$, and $r_9$ (Fig.~\ref{add}).
 
 From a process perspective, this scenario captures the full evolution from disturbance to response and eventual recovery. Specifically, the removal of $r_{10}$ first introduces the risk of collaborative-subtask failure due to an insufficient number of participants for $q_1$; the timeout-triggered recruitment mechanism then restores the required team size; and finally, task execution returns to a consistent and stable state. Therefore, the trajectory shown in Fig.~\ref{add} demonstrates not only successful task completion, but also the effectiveness of the proposed framework in supporting both collaborative-failure recovery and online task reallocation under dynamic team changes.
 \begin{figure}[thpb]
