@@ -48,20 +48,19 @@
 \maketitle
 
 \begin{abstract}
-— Coordinating task allocation and planning for a
+ Coordinating task allocation and planning for a
 heterogeneous multi-robot system is very challenging under
 communication and temporal logic constraints. To address this,
 we develop a decomposition-based semi-distributed task allocation and planning
-framework ($\mathrm{D}^{2}\mathrm{TAPR}$). Its semi-distributed nature arises from leader-based coordination during collaborative subtasks. The global task specified in linear temporal logic
-(LTL) is translated into a pruned Buchi automaton and ¨
+framework ($\mathrm{D}^{2}\mathrm{TAPR}$). The framework is semi-distributed because collaborative subtasks use leader-based coordination. The global task specified in linear temporal logic
+(LTL) is translated into a pruned Buchi automaton and
 decomposed into subtasks. Optional subtasks are planned via
 a consensus-based timetable algorithm. Collaborative subtasks
 requiring multiple robots are handled via leader-based coordination with timeout-triggered recruitment, while failed
 subtasks are reassigned through a free-market-based mechanism,
-which designates a region called free market for information
+which uses a designated free-market region for information
 exchange and subtask redistribution. A patrol mechanism is
-triggered when prerequisite subtasks required by temporal logic
-constraints become overdue, gathering information to prevent
+triggered when prerequisite completion remains unconfirmed beyond the estimated completion time, gathering information to prevent
 task blocking. Experiments on 25 benchmarks show that our
 approach is efficient and reliable.
 \end{abstract}
@@ -78,7 +77,7 @@ Multi-robot systems (MRS) are increasingly important in applications such as pat
 
 In practical applications, many multi-robot tasks include temporal logic constraints, such as ordering, persistence, and synchronization requirements \cite{leahy2016persistent}. For example, in industrial inspection of tunnels or pipelines, robots may be required to survey regions in a prescribed order to respect safety or access dependencies (e.g., a valve or passage must be verified before downstream areas are entered).  To specify these requirements precisely, recent studies have increasingly adopted formal languages \cite{11123780}, among which linear temporal logic (LTL) is a widely used tool \cite{baier2008principles}. LTL enables unambiguous task specification.
 
-Under LTL constraints, existing task allocation and planning methods are typically categorized into top-down and bottom-up approaches. In top-down methods, a global LTL formula specifies the overall mission, and a centralized planner decomposes this specification into robot-level plans. A common approach constructs a product automaton from a global LTL-derived nondeterministic B"uchi automaton (NBA) and robot discrete transition systems, and then solves the resulting graph problem\cite{smith2010optimal,ulusoy2013optimality}. However, state explosion caused by increased robot numbers, larger environments, and more complex tasks limits this method’s scalability in large systems.
+Under LTL constraints, existing task allocation and planning methods are typically categorized into top-down and bottom-up approaches. In top-down methods, a global LTL formula specifies the overall mission, and a centralized planner decomposes this specification into robot-level plans. A common approach constructs a product automaton from a global LTL-derived nondeterministic B"uchi automaton (NBA) and robot discrete transition systems, and then solves the resulting graph problem\cite{smith2010optimal,ulusoy2013optimality}. However, state explosion caused by increased robot numbers, larger environments, and more complex tasks limits this method scalability in large systems.
 To address this limitation, sampling-based\cite{kantaros2018sampling}, mixed-integer programming-based methods \cite{jones2019scratchs}, and incremental decision tree-based methods\cite{Chen2024RealTimeReactive} have been proposed to reduce computational complexity. Sampling-based methods \cite{kantaros2018sampling,kantaros2020stylus} reduce computational load by constructing generation trees from NBA samples rather than the full product automaton; however, they typically pre-specify the executing robot team for each subtask (or a set of candidate teams), which limits flexibility. Chen et al.\cite{Chen2024RealTimeReactive,chen2024fast} proposed an incremental decision tree-based method that significantly reduces computation, but it can be prone to locally optimal solutions. Recognizing the parallel and concurrent nature of MRS, some studies decompose a global specification into multiple subtasks using automaton transition relations to increase parallelism. Schillinger et al.\cite{schillinger2018decomposition,schillinger2018simultaneous} decompose the global task into a set of parallel subtasks. Virtual transition edges are then used to manage transitions between these parallel subtasks, enhancing system parallelism; however, this method does not explicitly handle collaborative subtasks. Based on these works, Liu et al.\cite{liu2024distributed,liu2024fast} further improved efficiency by representing subtask temporal relations with posets and solving via a branch-and-bound method. Recent studies also combine large language models with optimization-based schedulers, such as DEXTER-LLM \cite{zhu2025dexterllm}. Overall, top-down approaches are almost always centralized and depend on a central coordinator with global information, which makes them hard to deploy under limited communication.
 
 Bottom-up approaches, in contrast, assume each robot is assigned a  local LTL specification, and robots then coordinate through distributed planning and information exchange.  From this viewpoint, temporal logic planning becomes a task coordination problem. Filippidis et al.\cite{6426027} proposed a distributed planning framework under temporal logic constraints enables agents to exchange information and verify conflicts online. Each agent can communicate only with neighbors within its communication range, and a dedicated ``follower'' agent is used to establish and maintain communication links when interaction is required. In \cite{guo2015multi,6907485}, each robot updates its knowledge based on local observations and propagates it through neighbor communication; with newly received knowledge, robots confirm and adjust their action paths online. However, because such neighbor-only communication cannot guarantee that all robots required for a collaborative subtask can mutually communicate when needed, these methods do not handle collaborative tasks effectively. For scenarios with collaborative tasks, Tian et al.\cite{tian2021decentralized} proposed a distributed cooperative computation framework that decomposes  task constraints via an interaction-edge product automaton, enabling agents to synthesize local trajectories in parallel using only neighborhood interaction information.
@@ -107,7 +106,7 @@ A nondeterministic B\"uchi automaton (NBA) is a tuple $\mathcal{B}=(S,S_0,\Sigma
 \end{definition}
 
 Given an infinite word $\omega = \sigma_0\sigma_1\sigma_2\dots$ with $\sigma_i \in \Sigma$, a run $\rho = s_0s_1s_2\dots$ of the NBA $\mathcal{B}$ over $\omega$ is an infinite state sequence such that $s_0 \in S_0$ and $s_{i+1} \in \delta(s_i,\sigma_i)$ for all $i \ge 0$. The run $\rho$ is accepting if it visits states in $F$ infinitely often.
-Accepting runs can be represented in a prefix–suffix structure, where the prefix $w_{\text{pre}}$ runs from an initial state to an accepting state, and the suffix $w_{\text{suf}}$ forms a cycle containing at least one accepting state.
+Accepting runs can be represented in a prefix鈥搒uffix structure, where the prefix $w_{\text{pre}}$ runs from an initial state to an accepting state, and the suffix $w_{\text{suf}}$ forms a cycle containing at least one accepting state.
 
 This paper focuses on a special class of LTL formulas called syntactically co-safe LTL (sc-LTL) \cite{belta2017formal}. sc-LTL formulas restrict temporal operators to $\bigcirc$ (next), $\cup$ (until), and $\Diamond$ (eventually), and must be written in a positive normal form.
 
@@ -261,7 +260,7 @@ as well as leader-based coordination for collaborative subtasks.
 % 			\hline
 % 			Parameter & Definition  \\\hline
 % 			$P_k(\tau_n)$ & the set of plans received by robot $r_k$ at time $\tau_n$ \\\hline
-% 			$S_k(\tau_n)$ &  the set of states of robots received by  robot $r_k$ at time $\tau_n$  \\\hline
+% 			$S_k(\tau_n)$ & 聽the set聽of聽states聽of聽robots聽received聽by  robot $r_k$ at time $\tau_n$  \\\hline
 % 			$\alpha_f$, $\beta_f$,$\alpha_c$  &   the  coefficient of the information expiry time \\\hline
 % 			$\beta_o$ &  the coefficient of the collaboration waiting time \\\hline
 % 			$\zeta$ &   the  coefficient of the maximum recruitment time \\\hline
@@ -314,7 +313,7 @@ Assume $P_k(\tau_n)$ is the set of plans received by robot $r_k$ at time $\tau_n
 \begin{example}
 For robot $r_1$ in \textit{Example 1}, suppose its optional subtask set is $\mathrm{F}_1(\tau_n) = \{q_1, q_3\}$ and the initial plan is $\Pi_1(\tau_n) = (\varepsilon_q, \varepsilon_a, \tau_n)$, where $\varepsilon_q$ and $\varepsilon_a$ denote empty subtask and action, respectively. The actions of robot $r_1$ for $q_1$ and $q_3$ are $a^1_{1,2}$ and $a^3_{1,1}$ with $\mathrm{LC}(a^1_{1,2})=2.6$ and $\mathrm{LC}(a^3_{1,1})=2.5$, where 2.6 and 2.5 denote the time required to complete the corresponding actions.   First, $a^1_{1,2}$ is inserted; at this stage it can only be placed after $\Pi_{0,1}$, yielding $\Pi_1(\tau_n)=(\varepsilon_q, \varepsilon_a, \tau_n)(q_1, a^1_{1,2}, \tau_n + 5.2)$. After that, $a^3_{1,1}$ is inserted; at this stage, it can be inserted either between $\Pi_{0,1}$ and $\Pi_{1,1}$ or after $\Pi_{1,1}$, and the corresponding marginal costs are 16.7 and 7.9, respectively. Then, $\Pi_1(\tau_n)$ is further updated to $(\varepsilon_q, \varepsilon_a, \tau_n)(q_1, a^1_{1,2}, \tau_n + 5.2)(q_2, a^3_{1,1}, \tau_n + 13.2)$.
 \end{example}
-% For robot $r_k$, if plan $\Pi_n(\tau_n)$ is nonempty and the time gap between $\tau_n$ and the current time $t_{\mathrm{now}}$ exceeds the information expiry time $T^{k,n}_{\mathrm{late}}$, it is excluded from planning. Excessive delays render information unreliable, and using outdated plans may cause deadlocks. $T^{k,n}_{\mathrm{late}}$ is determined by the robots’ communication status, $r_k$’s state at the last exchange and the robots’ positions, as defined in Eq.(\ref{late}).
+% For robot $r_k$, if plan $\Pi_n(\tau_n)$ is nonempty and the time gap between $\tau_n$ and the current time $t_{\mathrm{now}}$ exceeds the information expiry time $T^{k,n}_{\mathrm{late}}$, it is excluded from planning. Excessive delays render information unreliable, and using outdated plans may cause deadlocks. $T^{k,n}_{\mathrm{late}}$ is determined by the robots鈥?communication status, $r_k$鈥檚 state at the last exchange and the robots鈥?positions, as defined in Eq.(\ref{late}).
 % \begin{equation} \label{late}
 %     T^{k,n}_{\mathrm{late}} =f_{\mathrm{com}}\left\lceil \left\lceil \frac{d_{k,n}}{D} \right\rceil \right\rceilT_{\mathrm{{enc}}}
 % \end{equation}
@@ -666,8 +665,8 @@ Specifically, the automaton pruning step removes only infeasible transitions, an
  If a subtask execution fails, Theorems~2 and~3 ensure that the subtask can be reassigned and successfully executed by another robot, guaranteeing completion of the overall plan. During execution, feasible path planning for each assigned subtask exists, as all transitions in $\mathcal{B}^{-}$ correspond to realizable motions in the workspace.
 
 \section{RESULT} \label{result}
-%This section evaluates the proposed algorithm via simulations and physical experiments. LTL2BA \cite{10.1007/3-540-44585-4_6} is used to convert LTL formulas into NBA. The algorithm is implemented in Python 3 and tested on an 11th Gen Intel® Core™ i7-11390H with 16 GB RAM. Physical experiments run on Ubuntu 18.04 with ROS.
-The algorithm is evaluated through simulations and physical experiments. LTL formulas are converted to NBA using LTL2BA \cite{10.1007/3-540-44585-4_6}. Simulations run in Python 3  on an 11th Gen Intel® Core™ i7-11390H with 16 GB RAM. Physical experiments use Ubuntu 18.04 with ROS. 
+%This section evaluates the proposed algorithm via simulations and physical experiments. LTL2BA \cite{10.1007/3-540-44585-4_6} is used to convert LTL formulas into NBA. The algorithm is implemented in Python 3 and tested on an 11th Gen Intel庐 Core鈩?i7-11390H with 16 GB RAM. Physical experiments run on Ubuntu 18.04 with ROS.
+The algorithm is evaluated through simulations and physical experiments. LTL formulas are converted to NBA using LTL2BA \cite{10.1007/3-540-44585-4_6}. Simulations run in Python 3  on an 11th Gen Intel庐 Core鈩?i7-11390H with 16 GB RAM. Physical experiments use Ubuntu 18.04 with ROS. 
 \subsection{Numerical Simulation}
 
 We evaluate the proposed framework under communication-constrained settings, with a focus on its effectiveness in handling task blocking, dynamic robot changes, collaborative coordination, and failure recovery. To this end, the proposed $\mathrm{D^2TAPR}$ is examined through four test scenarios:
@@ -678,7 +677,7 @@ ii)  Test 2 compares timeout-triggered recruitment with with timeout-based local
 
 iii) Test 3 evaluates free-market-based reassignment in preventing repeated subtask failures, using failure-to-tail reassignment as a baseline with $D=3$.  The goal is to examine whether free-market-based reassignment can reduce repeated failure chains and improve recovery stability under limited communication.
 
-iv) Test 4 examines $\mathrm{D^2TAPR}$’s adaptability to dynamic robot changes (e.g., robots joining, or temporarily becoming unavailable during execution). We evaluate whether the framework can maintain feasible allocation updates and continue task progress without global replanning. 
+iv) Test 4 examines $\mathrm{D^2TAPR}$鈥檚 adaptability to dynamic robot changes (e.g., robots joining, or temporarily becoming unavailable during execution). We evaluate whether the framework can maintain feasible allocation updates and continue task progress without global replanning. 
 %The robot speed is set to 0.22 m/s according to its physical characteristics.
 
 % The experimental  setup for Test 1 to Test 3 with 12 target regions $l = \{l_1, l_2, \dots, l_{12}\}$ and 12 robots of three types: type-1 (blue), type-2 (red), and type-3 (yellow). The  LTL-specified global task for Test 1 to Test 3 is:
@@ -694,8 +693,8 @@ iv) Test 4 examines $\mathrm{D^2TAPR}$’s adaptability to dynamic robot changes
         \includegraphics[scale=0.45]{image_10.png}
         \caption{
 %        	
-Simulation environment for Tests. The 30×15 simulation environment contains 12 target regions $l_1$$\sim$$l_{12}$ and 12 robots $r_1$$\sim$$r_{12}$ . 
-%30×15 environment contains 12 target regions ($l_1$ to $l_{12}$), 12 robots of 3 types (blue, red, yellow dots), and obstacles (black squares).
+Simulation environment for Tests. The 30脳15 simulation environment contains 12 target regions $l_1$$\sim$$l_{12}$ and 12 robots $r_1$$\sim$$r_{12}$ . 
+%30脳15 environment contains 12 target regions ($l_1$ to $l_{12}$), 12 robots of 3 types (blue, red, yellow dots), and obstacles (black squares).
         	}
     \label{workspace}
    \end{figure}
@@ -735,13 +734,13 @@ The results of Test 1. Left: task completion rates under different communication
 % time remains stable between 15 to 30~m despite decreasing communication range due to free-market robots relaying the completion message of $q_1$.  Below this range, robots rely on patrol for the message of $q_1$ updates (Fig. \ref{patrol}). Note that when $D$ is less than 15 m, disabling the patrol mechanism prevents robots from receiving  $q_1$'s completion message, leaving the task unfinished. Test 1 demonstrates that the patrol mechanism effectively resolves task blocking from missing information.
 
 %With further range reduction, the free market can no longer relay messages, robots obtain information about $q_1$ completion through the patrol mechanism (Fig. \ref{patrol}). It should be noted that when , disabling the patrol mechanism prevents robots from receiving $q_1$'s completion message, resulting in the task remaining unfinished.
-%Notably, at $D = 5$ m, disabling the patrolling mechanism prevents robots from receiving $q_1$’s completion message, causing the task to remain unfinished.
+%Notably, at $D = 5$ m, disabling the patrolling mechanism prevents robots from receiving $q_1$鈥檚 completion message, causing the task to remain unfinished.
 
 %\begin{figure}[thpb]
 %	\centering
 %	\includegraphics[scale=0.28]{pic/com15_trans.eps}
 %	\caption{Completion message $q_1$ is transmitted along the red line. The black dashed line represents the boundary of the free market, and the brown dashed line depicts the movement trajectory of robots heading toward the free market.}
-%%	{Task execution in Case 1 when $D=15$ m. The X-axis shows time, and the Y-axis lists subtasks. The wider block marks the robot’s current task; the narrower block in the subtask’s color means the robot is waiting for others. Gray lines indicate there is no assigned subtask and the robot is not in the free market.}
+%%	{Task execution in Case 1 when $D=15$ m. The X-axis shows time, and the Y-axis lists subtasks. The wider block marks the robot鈥檚 current task; the narrower block in the subtask鈥檚 color means the robot is waiting for others. Gray lines indicate there is no assigned subtask and the robot is not in the free market.}
 %	\label{com15}
 %\end{figure}
 

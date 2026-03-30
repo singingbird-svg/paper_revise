@@ -1,19 +1,18 @@
 # Fdb version 4
-["bibtex bare_jrnl_new_sample4"] 1774831830.06753 "bare_jrnl_new_sample4.aux" "bare_jrnl_new_sample4.bbl" "bare_jrnl_new_sample4" 1774837770.44452 0
+["bibtex bare_jrnl_new_sample4"] 0 "bare_jrnl_new_sample4.aux" "bare_jrnl_new_sample4.bbl" "bare_jrnl_new_sample4" 0 -1
   "./reference.bib" 1774756129 15003 1cd21a2ad84435fb1b2760dbef5047aa ""
-  "bare_jrnl_new_sample4.aux" 1774837769 10746 02971ba7edbd7991d4ccf08667a2b302 "pdflatex"
+  "bare_jrnl_new_sample4.aux" 1774839845 10747 e723d46e1827518834f78dbf78661b6e "pdflatex"
   "d:/texlive/2025/texmf-dist/bibtex/bst/ieeetran/IEEEtran.bst" 1762222165 57748 7c8250ecf02814ce6ddc0cdbb63df1dd ""
   (generated)
   "bare_jrnl_new_sample4.bbl"
   "bare_jrnl_new_sample4.blg"
   (rewritten before read)
-["pdflatex"] 1774837767.73026 "h:/paperCode/DistributedLTL/skill_for_paper/paper-revision-skill/bare_jrnl_new_sample4.tex" "bare_jrnl_new_sample4.pdf" "bare_jrnl_new_sample4" 1774837770.44498 0
+["pdflatex"] 1774839843.96847 "h:/paperCode/DistributedLTL/skill_for_paper/paper-revision-skill/bare_jrnl_new_sample4.tex" "bare_jrnl_new_sample4.pdf" "bare_jrnl_new_sample4" 1774839846.99825 2
   "IEEEtran.cls" 1774755545 282108 7379a03af5f3d0dad26db23a43c3a726 ""
-  "bare_jrnl_new_sample4.aux" 1774837769 10746 02971ba7edbd7991d4ccf08667a2b302 "pdflatex"
+  "bare_jrnl_new_sample4.aux" 1774839845 10747 e723d46e1827518834f78dbf78661b6e "pdflatex"
   "bare_jrnl_new_sample4.bbl" 1774831830 10289 fb1b249c66ab7d7f7837131e241cb9de "bibtex bare_jrnl_new_sample4"
-  "bare_jrnl_new_sample4.tex" 1774837766 131403 07be7a54ac5602fd8ccc164803940448 ""
+  "bare_jrnl_new_sample4.tex" 1774839839 131418 c18e9185dd5d0279e0306b39aed13955 ""
   "d:/texlive/2025/texmf-dist/fonts/enc/dvips/base/8r.enc" 1762221814 4850 80dc9bab7f31fb78a000ccfed0e27cab ""
-  "d:/texlive/2025/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc" 1762221616 2900 1537cc8184ad1792082cd229ecc269f4 ""
   "d:/texlive/2025/texmf-dist/fonts/map/fontname/texfonts.map" 1762221984 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "d:/texlive/2025/texmf-dist/fonts/tfm/adobe/times/ptmb7t.tfm" 1762223359 2172 fd0c924230362ff848a33632ed45dc23 ""
   "d:/texlive/2025/texmf-dist/fonts/tfm/adobe/times/ptmb8r.tfm" 1762223359 4524 6bce29db5bc272ba5f332261583fee9c ""
@@ -25,7 +24,6 @@
   "d:/texlive/2025/texmf-dist/fonts/tfm/adobe/times/ptmrc7t.tfm" 1762223359 2680 312a2d12b1f1df8ee0212e7ba1962402 ""
   "d:/texlive/2025/texmf-dist/fonts/tfm/adobe/times/ptmri7t.tfm" 1762223359 2288 f478fc8fed18759effb59f3dad7f3084 ""
   "d:/texlive/2025/texmf-dist/fonts/tfm/adobe/times/ptmri8r.tfm" 1762223359 4640 532ca3305aad10cc01d769f3f91f1029 ""
-  "d:/texlive/2025/texmf-dist/fonts/tfm/jknappen/ec/tcrb0900.tfm" 1762221831 1536 5a472bdc37e979009dd09d94296ad641 ""
   "d:/texlive/2025/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex7.tfm" 1762221327 1004 54797486969f23fa377b128694d548df ""
   "d:/texlive/2025/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex8.tfm" 1762221327 988 bdf658c3bfc2d96d3c8b02cfc1c94c20 ""
   "d:/texlive/2025/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex9.tfm" 1762221327 996 a18840b13b499c08ac2de96a99eda4bc ""
@@ -35,7 +33,6 @@
   "d:/texlive/2025/texmf-dist/fonts/tfm/public/amsfonts/symbols/msbm10.tfm" 1762221327 908 2921f8a10601f252058503cc6570e581 ""
   "d:/texlive/2025/texmf-dist/fonts/tfm/public/amsfonts/symbols/msbm5.tfm" 1762221327 940 75ac932a52f80982a9f8ea75d03a34cf ""
   "d:/texlive/2025/texmf-dist/fonts/tfm/public/amsfonts/symbols/msbm7.tfm" 1762221327 940 228d6584342e91276bf566bcf9716b83 ""
-  "d:/texlive/2025/texmf-dist/fonts/tfm/public/cm/cmb10.tfm" 1762221611 1336 fb32298c2d61d0c4b59f3065fdd6def9 ""
   "d:/texlive/2025/texmf-dist/fonts/tfm/public/cm/cmmi6.tfm" 1762221611 1512 f21f83efb36853c0b70002322c1ab3ad ""
   "d:/texlive/2025/texmf-dist/fonts/tfm/public/cm/cmmi8.tfm" 1762221611 1520 eccf95517727cb11801f4f1aee3a21b4 ""
   "d:/texlive/2025/texmf-dist/fonts/tfm/public/cm/cmmi9.tfm" 1762221611 1524 d89e2d087a9828407a196f428428ef4a ""
@@ -63,7 +60,6 @@
   "d:/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/symbols/msam10.pfb" 1762221328 31764 459c573c03a4949a528c2cc7f557e217 ""
   "d:/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb" 1762221328 34694 870c211f62cb72718a00e353f14f254d ""
   "d:/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm7.pfb" 1762221328 35309 940e81a5b9e04201a07e8b33a3ae6e64 ""
-  "d:/texlive/2025/texmf-dist/fonts/type1/public/cm-super/sfrb0900.pfb" 1762221616 138918 e8ea5bbe8362f4c40f506603895d4780 ""
   "d:/texlive/2025/texmf-dist/fonts/type1/urw/times/utmb8a.pfb" 1762223359 44729 fea0975e20ec51c992338362f05f1146 ""
   "d:/texlive/2025/texmf-dist/fonts/type1/urw/times/utmbi8a.pfb" 1762223359 44656 0cbca70e0534538582128f6b54593cca ""
   "d:/texlive/2025/texmf-dist/fonts/type1/urw/times/utmr8a.pfb" 1762223359 46026 687528a208fbfc1f00832bb96cccebbb ""
@@ -111,7 +107,7 @@
   "d:/texlive/2025/texmf-var/fonts/map/pdftex/updmap/pdftex.map" 1762223739 5512713 e2e6a6c037ab0e435732e63fdc2d5cc7 ""
   "d:/texlive/2025/texmf-var/web2c/pdftex/pdflatex.fmt" 1762223874 3346146 864e3d9251476e458dadfec6d5917b8b ""
   "d:/texlive/2025/texmf.cnf" 1762223719 713 e69b156964470283e0530f5060668171 ""
-  "h:/paperCode/DistributedLTL/skill_for_paper/paper-revision-skill/bare_jrnl_new_sample4.tex" 1774837766 131403 07be7a54ac5602fd8ccc164803940448 ""
+  "h:/paperCode/DistributedLTL/skill_for_paper/paper-revision-skill/bare_jrnl_new_sample4.tex" 1774839839 131418 c18e9185dd5d0279e0306b39aed13955 ""
   "image_10.png" 1774755545 290377 9c8994acc1829180857bcee6f52df5e6 ""
   "image_11.png" 1774755545 154097 48e3e637f4318240b40bbc9bd8b41eaf ""
   "image_15.png" 1774755545 22675 262de04910ccda67b60ca335af1e3be9 ""
