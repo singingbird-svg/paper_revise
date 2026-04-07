@@ -35,8 +35,8 @@ T.~Okubo and M.~Takahashi, ``Simultaneous optimization of task allocation and pa
 \bibitem{wang2022consensus}
 S.~Wang, Y.~Liu, Y.~Qiu, and J.~Zhou, ``Consensus-based decentralized task allocation for multi-agent systems and simultaneous multi-agent tasks,'' \emph{IEEE Robotics and Automation Letters}, vol.~7, no.~4, pp. 12\,593--12\,600, 2022.
 
-\bibitem{braquet2021greedy}
-M.~Braquet and E.~Bakolas, ``Greedy decentralized auction-based task allocation for multi-agent systems,'' \emph{IFAC-PapersOnLine}, vol.~54, no.~20, pp. 675--680, 2021.
+\bibitem{govoni2025decentralized}
+L.~Govoni and A.~Cristofaro, ``A decentralized control and task allocation framework for heterogeneous redundant multiagent systems,'' \emph{IEEE Transactions on Cybernetics}, 2025.
 
 \bibitem{wang2025multi}
 Y.~Wang, S.~Ren, and C.~Wang, ``Multi-uav multi-task allocation based on cognitive state-based hybrid contract net protocol,'' in \emph{2025 10th International Conference on Computer and Communication System (ICCCS)}.\hskip 1em plus 0.5em minus 0.4em\relax IEEE, 2025, pp. 921--926.
@@ -56,6 +56,12 @@ S.~Xu, X.~Luo, Y.~Huang, L.~Leng, R.~Liu, and C.~Liu, ``Nl2hltl2plan: Scaling up
 \bibitem{baier2008principles}
 C.~Baier and J.-P. Katoen, \emph{Principles of model checking}.\hskip 1em plus 0.5em minus 0.4em\relax MIT press, 2008.
 
+\bibitem{li2025task}
+L.~Li, Z.~Chen, H.~Wang, and Z.~Kan, ``Task allocation of heterogeneous robots under temporal logic specifications with inter-task constraints and variable capabilities,'' \emph{IEEE Transactions on Automation Science and Engineering}, 2025.
+
+\bibitem{yu2021distributed}
+P.~Yu and D.~V. Dimarogonas, ``Distributed motion coordination for multirobot systems under ltl specifications,'' \emph{IEEE Transactions on Robotics}, vol.~38, no.~2, pp. 1047--1062, 2021.
+
 \bibitem{smith2010optimal}
 S.~L. Smith, J.~T\u{u}mov{\'a}, C.~Belta, and D.~Rus, ``Optimal path planning under temporal logic constraints,'' in \emph{2010 IEEE/RSJ International Conference on Intelligent Robots and Systems}.\hskip 1em plus 0.5em minus 0.4em\relax IEEE, 2010, pp. 3288--3293.
 
@@ -65,17 +71,14 @@ A.~Ulusoy, S.~L. Smith, X.~C. Ding, C.~Belta, and D.~Rus, ``Optimality and robus
 \bibitem{kantaros2018sampling}
 Y.~Kantaros and M.~M. Zavlanos, ``Sampling-based optimal control synthesis for multirobot systems under global temporal tasks,'' \emph{IEEE Transactions on Automatic Control}, vol.~64, no.~5, pp. 1916--1931, 2018.
 
-\bibitem{jones2019scratchs}
-A.~M. Jones, K.~Leahy, C.~Vasile, S.~Sadraddini, Z.~Serlin, R.~Tron, and C.~Belta, ``Scratchs: Scalable and robust algorithms for task-based coordination from high-level specifications,'' in \emph{The International Symposium of Robotics Research}.\hskip 1em plus 0.5em minus 0.4em\relax Springer, 2019, pp. 224--241.
+\bibitem{kantaros2020stylus}
+------, ``Stylus*: A temporal logic optimal control synthesis algorithm for large-scale multi-robot systems,'' \emph{The International Journal of Robotics Research}, vol.~39, no.~7, pp. 812--836, 2020.
+
+\bibitem{luo2022temporal}
+X.~Luo and M.~M. Zavlanos, ``Temporal logic task allocation in heterogeneous multirobot systems,'' \emph{IEEE Transactions on Robotics}, vol.~38, no.~6, pp. 3602--3621, 2022.
 
 \bibitem{Chen2024RealTimeReactive}
 Z.~Chen and Z.~Kan, ``Real-time reactive task allocation and planning of large heterogeneous multi-robot systems with temporal logic specifications,'' \emph{The International Journal of Robotics Research}, vol.~44, no.~4, pp. 640--664, 2024.
-
-\bibitem{kantaros2020stylus}
-Y.~Kantaros and M.~M. Zavlanos, ``Stylus*: A temporal logic optimal control synthesis algorithm for large-scale multi-robot systems,'' \emph{The International Journal of Robotics Research}, vol.~39, no.~7, pp. 812--836, 2020.
-
-\bibitem{chen2024fast}
-Z.~Chen, Z.~Zhou, S.~Wang, J.~Li, and Z.~Kan, ``Fast temporal logic mission planning of multiple robots: A planning decision tree approach,'' \emph{IEEE Robotics and Automation Letters}, vol.~9, no.~7, pp. 6146--6153, 2024.
 
 \bibitem{schillinger2018decomposition}
 P.~Schillinger, M.~B{\"u}rger, and D.~V. Dimarogonas, ``Decomposition of finite ltl specifications for efficient multi-agent planning,'' in \emph{Distributed Autonomous Robotic Systems: The 13th International Symposium}.\hskip 1em plus 0.5em minus 0.4em\relax Springer, 2018, pp. 253--267.
