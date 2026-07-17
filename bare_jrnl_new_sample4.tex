@@ -102,7 +102,7 @@ In practical robotic applications, however, it is often important to obtain an e
 
 % Luo 那篇就是这样：先 prune/relax NBA，再提 subtasks 和 temporal orders，再做高层分配，再做可执行路径。这个“流水线感”非常强。
 To address this problem, we propose a novel framework that integrates robot planning into the automaton generation process. Unlike existing methods that first construct the complete NBA and then perform planning on top of it, our approach introduces information about the robot team, the workspace, and intermediate planning results during the translation from LTL to automata. Specifically, we follow the translation pipeline of LTL2BA\cite{Gastin2001FastLT}, a classical tool widely used in the literature\cite{10530927,schillinger2018simultaneous}, which translates an LTL formula into a very weak alternating automaton (VWAA), then into a generalized Büchi automaton (GBA), and finally into a nondeterministic Büchi automaton (NBA). During GBA construction, each candidate transition is screened before insertion against the robot types and cardinalities available in the team, and candidates whose simultaneous action requirements cannot be satisfied are discarded. After the GBA is constructed,  transitions that impose unnecessary synchronization are removed.
-During NBA generation, each newly generated transition induces a subtask. A greedy task-allocation procedure is then applied to the induced subtask. If no feasible assignment exists, the corresponding plan-graph successor is discarded; otherwise, the feasible assignment is recorded in a shared plan graph. Consequently, an executable plan becomes available as soon as an accepting prefix--suffix structure is generated, before the complete NBA has been constructed. After the plan graph has been completed, the executable plan initializes the incumbent of a branch-and-bound optimizer, which explores alternative robot assignments over the generated graph to further reduce the makespan. When a robot becomes unavailable during execution, the method re-roots the retained plan graph at the last confirmed execution state and re-optimizes the unfinished assignments over the surviving team. If the retained graph contains no feasible accepting continuation for the surviving team, the current implementation reports infeasibility. In this way, the proposed method supports rapid first-solution generation as well as continued improvement toward better solutions. 
+During NBA generation, each newly generated transition induces a subtask. A greedy task-allocation procedure is then applied to the induced subtask. The feasible assignment is recorded in a plan graph. Consequently, an executable plan becomes available as soon as an accepting prefix--suffix structure is generated, before the complete NBA has been constructed. After the plan graph has been completed, the executable plan initializes the incumbent of a branch-and-bound optimizer. When a robot becomes unavailable during execution, the method re-roots the retained plan graph at the last confirmed execution state and re-optimizes the unfinished assignments over the surviving team. In this way, the proposed method supports rapid first-solution generation as well as continued improvement toward better solutions. 
 
 \subsection{Related Work}
 % 先总起讲大概背景
@@ -116,7 +116,7 @@ Planning-decision-tree-based methods\cite{Chen2024RealTimeReactive, 2025Task } h
 
 Overall, while existing top-down methods have advanced LTL-MRTA from different perspectives, they still struggle to simultaneously achieve rapid first-solution generation and effective subsequent optimization in large-scale problems. This limitation is particularly evident when substantial computation is required before a planning structure suitable for allocation can even be obtained. Instead of constructing the complete NBA first and then solving the allocation problem on top of it, the proposed method incorporates robot-team feasibility,
 workspace travel information, and partial planning results into the LTL-to-automaton translation process. During GBA construction, infeasible or decomposition-inducing transitions are pruned before they are propagated to the NBA stage. 
-During the NBA construction stage, the NBA and a shared directed planning graph are generated synchronously. Whenever a new automaton transition becomes available, the corresponding transition is evaluated by a greedy executable assignment, and newly discovered successor Buchi states are ordered within the current pending batch by a lightweight residual-obligation score. Once an accepting prefix-suffix structure is reached, an executable initial plan can be extracted and used as a warm start for the subsequent branch-and-bound assignment optimizer.
+During the NBA construction stage, the NBA and a shared directed planning graph are generated synchronously. Whenever a new automaton transition becomes available, the corresponding transition is evaluated by a greedy executable assignment, and newly discovered successor NBA states are ordered within the current pending batch by a lightweight residual-obligation score. Once an accepting prefix-suffix structure is reached, an executable initial plan can be extracted and used as a warm start for the subsequent branch-and-bound assignment optimizer.
 When robot failures occur during execution, the proposed method can rapidly repair the plan for the remaining mission. The proposed framework supports both fast initial planning and continued improvement toward higher-quality solutions.
 % 这是你的主 related work。
 
@@ -284,7 +284,7 @@ The complete set of atomic propositions used in the temporal logic specification
 $\mathcal{AP}\triangleq \mathcal{P}\cup\mathcal{A}$.
 
 \begin{example}
-For example, as shown in Fig.\ref{} consider a large warehouse facility with eight regions of interest, denoted by $\mathcal{L}=\{l_1,l_2,\ldots,l_8\}$. $l_1$ and $l_2$ are inbound receiving and temporary storage areas, $l_3$ and $l_4$ are order-picking and outbound loading areas, $l_5$ and $l_6$ are inspection and equipment-maintenance areas, and $l_7$ and $l_8$ are dispatch areas. The robot team consists of five robots, $\mathcal{R}=\{r_1,r_2,r_3,r_4,r_5\}$, where $r_1,r_2,r_3$ are type-1  robots  and $r_4,r_5$ are type-2 robots. Consider a safety-inspection task $\Diamond\big(a_1 \wedge \Diamond(a_2 \wedge (a_3)\big) \wedge \Box\neg p_8 $.
+For example, as shown in Fig.\ref{workspace} consider a large warehouse facility with eight regions of interest, denoted by $\mathcal{L}=\{l_1,l_2,\ldots,l_8\}$. $l_1$ and $l_2$ are inbound receiving and temporary storage areas, $l_3$ and $l_4$ are order-picking and outbound loading areas, $l_5$ and $l_6$ are inspection and equipment-maintenance areas, and $l_7$ and $l_8$ are dispatch areas. The robot team consists of five robots, $\mathcal{R}=\{r_1,r_2,r_3,r_4,r_5\}$, where $r_1,r_2,r_3$ are type-1  robots  and $r_4,r_5$ are type-2 robots. Consider a safety-inspection task $\Diamond\big(a_1 \wedge \Diamond(a_2 \wedge (a_3)\big) \wedge \Box\neg p_8 $.
 Here,  $c(a_1)=(2,2,l_5), c(a_2)=(1,1,l_6)$ and $c(a_3) = (1,1,l_1)$. This formula requires all robots to avoid the restricted dispatch area $l_8$ throughout execution. It also requires two type-2  robots to first perform a collaborative safety inspection at $l_5$, after which one type-1  robot checks the equipment-maintenance area $l_6$ and another type-1 robot inspects the inbound receiving area $l_1$.
 \end{example}
 
@@ -301,11 +301,11 @@ Let $B_\varphi=(Q_B,Q_{B,0},\Sigma_B,\rightarrow_B,Q_{B,F})$ be the NBA associat
  To connect the generated NBA structure with task-level planning, we associate each NBA transition with a subtask. 
 
 \begin{definition}[Subtask]
-Consider an NBA transition $(q_i,\sigma_{i},q_j)\in\rightarrow_B$, where  \(q_i,q_j\in Q_B\) are NBA states. Let $\sigma_i^{\rm s}$ denote the self-loop condition at NBA state $q_i$.   If no holding condition is required, we set \(\sigma_i^{\rm s}=\top\). The subtask induced by this  transition is defined as below.
+Consider an NBA transition $(q_i,\sigma_{ij},q_j)\in\rightarrow_B$, where  \(q_i,q_j\in Q_B\) are NBA states. Let $\sigma_i^{\rm s}$ denote the self-loop condition at NBA state $q_i$.   If no holding condition is required, we set \(\sigma_i^{\rm s}=\top\). The subtask induced by this  transition is defined as below.
 \begin{equation}
-\omega_{i}=(\sigma_{i},\sigma_i^{\rm s}).
+\omega_{ij}=(\sigma_{ij},\sigma_i^{\rm s}).
 \end{equation}
-Here, $\sigma_{i}$ specifies the propositions that enable the transition from $q_i$ to $q_j$, while
+Here, $\sigma_{ij}$ specifies the propositions that enable the transition from $q_i$ to $q_j$, while
 $\sigma_i^{\rm s}$ specifies the propositions that must be maintained before this transition is
 completed.
 \end{definition}
@@ -323,7 +323,7 @@ J_\varphi=T(\Pi_{\mathrm{fin}}).
 \end{equation}
 
 \begin{problem}
-Consider a  workspace $\mathcal{W}$ (shown in Figure~\ref{fig:workspace}) and a heterogeneous robot team $\mathcal{R}$ with type set $\mathcal{T}$, and a LTL formula $\varphi$ defined over the atomic proposition set $\mathcal{AP}=\mathcal{P} \cup \mathcal{A}$.  The goal is to develop a task plan for  each robot such that the specification $\varphi$ is satisfied and the cost in Eq. \ref{objective} is minimized.
+Consider a  workspace $\mathcal{W}$ and a heterogeneous robot team $\mathcal{R}$ with type set $\mathcal{T}$, and a LTL formula $\varphi$ defined over the atomic proposition set $\mathcal{AP}=\mathcal{P} \cup \mathcal{A}$.  The goal is to develop a task plan for  each robot such that the specification $\varphi$ is satisfied and the cost in Eq. \ref{objective} is minimized.
 \end{problem}
 
 \section{System  Overview} \label{sec:system_overview}
@@ -339,15 +339,15 @@ Given the pruned GBA, the framework constructs the NBA and a shared directed pla
 
 \begin{algorithm}[H]
 \caption{On-the-fly Task Allocation framework} \label{alg:framework}
-\label{alg:framework}
 \begin{algorithmic}[1]
 \REQUIRE LTL formula $\varphi$, workspace $\mathcal{W}$, robot team $\mathcal{R}$, atomic propositions $\mathcal{AP}$.
 \ENSURE Feasible plan $\Pi^\star$.
 \STATE Parse $\varphi$ and construct the VWAA $\mathcal{V}_\varphi$.
 \STATE Construct and prune the GBA $\mathcal{G}^{-}_\varphi$.
-\STATE Initialize the plan graph $G_P$ with the root plan node $\nu_0$.
-\STATE $(G_P,\Pi_{\rm first})\gets$ \text{PlanGraph\_Construct}($\mathcal{G}_\varphi,\mathcal{R},\nu_0$).
-\STATE $\Pi^\star\gets$ \text{BnB\_Optimizer}($G_P,\Pi_{\rm first}$).
+\STATE Initialize the root plan node $\nu_0$.
+\STATE $(G_P,\Pi_{\rm init})\gets
+\textsc{ConstructPlanGraph}(\mathcal{G}^{-}_\varphi,\mathcal R,\nu_0)$.
+\STATE $\Pi^\star\gets$ \text{BnB\_Optimizer}($G_P,\Pi_{\rm init}$).
 \RETURN $\Pi^\star$.
 \end{algorithmic}
 \end{algorithm}
@@ -513,346 +513,369 @@ describe where the current partial plan is in the NBA and which subtask is being
 %在这里补充上例子的具体数据（tree是多少，graph是多少）
 \subsection{Construction of Plan Graph}  %需要按照前缀后缀进行修改，特别是lower bound那部分
 %可以增加一个整体概述
-% The purpose of plan-graph construction is to tightly couple automaton expansion with executable task-level evaluation, so that feasible accepting plans can be identified as early as possible and subsequently used to warm-start the branch-and-bound search. Starting from the root node \(\nu_0\), which is associated with the initial NBA state \(q_{B,0}\) and the initial team configuration, the method initializes the predicted robot positions \(X_0\) from the robots' initial states, sets the predicted completion-time vector \(\Theta_0\) to zero, and begins with an empty task assignment. The NBA expansion and the plan-graph expansion are then carried out in an on-the-fly and synchronized manner. Specifically, whenever an NBA state \(q_B\) generates a transition \(q_B \xrightarrow{\sigma} q_B'\), the algorithm creates, or reconnects to, a compatible successor structure in the plan graph, computes a greedy synchronized assignment for the subtask induced by \(\sigma\), and updates the predicted robot positions and completion times accordingly. In this way, the construction process is guided primarily by executable task assignments and their realized costs, while infeasible candidates are discarded whenever no valid synchronized assignment exists.
+The plan graph is constructed synchronously with the NBA. The root
+node is initialized as
+\(\nu_0=(q_{B,0},\mathrm{pre},\emptyset,\emptyset,X_0,\Theta_0)\).
+For each robot \(r_k\in\mathcal R\), its initial predicted position
+and completion time are \(x_0(r_k)=x(r_k)\) and
+\(\theta_0(r_k)=0\), respectively. The same NBA state may be reached through different task-allocation sequences. These sequences may result in different robot assignments and predicted execution states. Therefore, multiple plan nodes may be associated with the same NBA state. For any plan node \(\nu_i\), its current plan cost is defined as follows.
+\begin{equation}
+J(\nu_i)
+=
+\max_{r_k\in\mathcal R}\theta_i(r_k).
+\label{eq:plan-node-cost}
+\end{equation}
+When multiple plan nodes are associated with the same NBA state,
+they are processed in nondecreasing order of this cost.
 
-% The resulting plan graph is therefore a shared and dynamically evolving directed structure. Compatible successor structures may be reused, reconnected, and further extended as additional admissible contexts are discovered during the expansion process, thereby reducing redundant exploration while preserving the relevant planning semantics. Whenever an accepting prefix--suffix configuration is reached, a feasible plan can be extracted online by tracing a valid predecessor chain from the accepting node back to the root. This plan is immediately recorded as the current incumbent, and it is further updated if later accepting structures yield a lower cost during the same construction phase. The best feasible solution produced by the plan graph is then provided as a warm start for the subsequent branch-and-bound stage. After the construction phase is completed, a unified graph simplification procedure is applied to remove dead, unreachable, and locally dominated portions of the shared structure while preserving the live corridors that can still contribute to accepting solutions.
+During construction, \(\mathcal S_B\) stores the NBA states waiting to be expanded, while \(Q_B^{\rm exp}\) contains the states that have already been expanded. For each state removed from \(\mathcal S_B\), the temporary set \(\mathcal P_B\) stores the newly discovered successor NBA states.
+For each feasible extension from a parent plan node \(\nu_i\) along a
+candidate transition \(e_{B,ij}\), the ordering score
+\(S(\nu_i,e_{B,ij})\) is computed. A lower score gives the
+corresponding successor NBA state higher priority. If several feasible
+extensions reach the same successor state \(q_{B,j}\),
+\(s_B(q_{B,j})\) retains their smallest score. The score computation
+is presented in the residual-obligation scoring subsection.
+
 \begin{algorithm}[t]
-\caption{On-the-fly NBA and plan-graph construction}
+\caption{\textsc{ConstructPlanGraph}}
 \label{alg:otf_pg}
 \begin{algorithmic}[1]
 \REQUIRE Pruned GBA $\mathcal{G}^{-}_\varphi$, robot team $\mathcal R$,
 and initial plan node $\nu_0$.
-\ENSURE Plan graph $G_P$ and first feasible plan $\Pi_{\rm first}$.
-\STATE Initialize $G_P=(V_P,E_P)$ with root node
-$\nu_0=(q_{B,0},\mathrm{pre},\emptyset,\emptyset,X_0,\Theta_0)$.
-\STATE Attach $\nu_0$ to the initial NBA state $q_{B,0}$ and insert
-$q_{B,0}$ into the NBA-state expansion stack $\mathcal{S}_B$.
-\STATE $\Pi_{\rm first}\gets\emptyset$.
+\ENSURE Plan graph $G_P$ and initial plan $\Pi_{\rm init}$.
+
+\STATE $G_P\gets(\{\nu_0\},\emptyset)$.
+\STATE $\mathcal S_B\gets[q_{B,0}]$ and
+$Q_B^{\rm exp}\gets\emptyset$.
+\STATE $\Pi_{\rm init}\gets\emptyset$.
+
 \WHILE{$\mathcal{S}_B\neq\emptyset$}
-    \STATE Pop the next NBA state $q_B$ from $\mathcal{S}_B$.
-    \STATE Initialize the current pending set $\mathcal{P}_B\gets\emptyset$.
-    \STATE Generate candidate NBA transitions
-    $e_B:q_B\xrightarrow{\sigma}q'_B$ from the outgoing GBA transitions.
-    \FORALL{candidate transition $e_B:q_B\xrightarrow{\sigma}q'_B$}
-        \FORALL{active plan nodes $\nu$ associated with $q_B$, in
-        nondecreasing current plan cost}
-            \STATE Compute the ordering score $S(\nu,e_B)$.
-            \STATE $\nu'\gets
-            \operatorname{ExtendPlanGraph}(G_P,\nu,e_B,\mathcal R)$.
-            \IF{$\nu'.\mathrm{Prog}\neq\mathrm{dead}$}
-                \STATE Use $S(\nu,e_B)$ to update the retained score of $q'_B$
-                in $\mathcal{P}_B$.
-            \ENDIF
-            \IF{$\nu'.\mathrm{Prog}=\mathrm{acc}$ and $\Pi_{\rm first}=\emptyset$}
-                \STATE Extract $\Pi_{\rm first}$ through the representative-predecessor chain.
+    \STATE $q_{B,i}\gets\operatorname{Pop}(\mathcal S_B)$.
+    \STATE $Q_B^{\rm exp}\gets Q_B^{\rm exp}\cup\{q_{B,i}\}$.
+    \STATE $\mathcal P_B\gets\emptyset$.
+    \STATE Generate the candidate NBA transitions from $q_{B,i}$.
+    \STATE Simplify the candidate transitions from $q_{B,i}$ using the
+    on-the-fly transition rule of LTL2BA.
+
+    \FORALL{remaining candidate transition
+    $e_{B,ij}:q_{B,i}\xrightarrow{\sigma_{ij}}q_{B,j}$}
+        \FORALL{plan node $\nu_i$ associated with $q_{B,i}$, in
+        nondecreasing order of $J(\nu_i)$}
+            \STATE $\nu_j\gets
+            \textsc{ExtendPlanGraph}(G_P,\nu_i,e_{B,ij},\mathcal R)$.
+
+            \IF{$\nu_j\neq\emptyset$}
+                \IF{$\nu_j.\mathrm{Prog}=\mathrm{acc}$}
+                    \IF{$\Pi_{\rm init}=\emptyset\lor
+                    J(\nu_j)<T(\Pi_{\rm init})$}
+                        \STATE Set \(\Pi_{\rm init}\) to the plan extracted
+                        from \(\nu_j\).
+                    \ENDIF
+                \ELSE
+                    \STATE Update $\mathcal M_j$ using the remaining sets
+                    of the parent nodes of $\nu_j$.
+                    \STATE Compute $S(\nu_i,e_{B,ij})$ according to
+                    Eq.~\ref{eq:score}.
+                    \IF{$q_{B,j}\in Q_B^{\rm exp}$}
+                        \STATE \textsc{ReuseSuccessors}$(G_P,\nu_j,\mathcal R)$.
+                    \ELSIF{$q_{B,j}\notin\mathcal S_B$}
+                        \IF{$q_{B,j}\notin\mathcal P_B$}
+                            \STATE $\mathcal P_B\gets
+                            \mathcal P_B\cup\{q_{B,j}\}$.
+                            \STATE $s_B(q_{B,j})\gets
+                            S(\nu_i,e_{B,ij})$.
+                        \ELSE
+                            \STATE $s_B(q_{B,j})\gets
+                            \min\{s_B(q_{B,j}),S(\nu_i,e_{B,ij})\}$.
+                        \ENDIF
+                    \ENDIF
+                \ENDIF
             \ENDIF
         \ENDFOR
-        \IF{$q'_B$ is new and has at least one retained plan node}
-            \STATE Add $q'_B$ to $\mathcal{P}_B$.
-        \ENDIF
     \ENDFOR
-    \STATE Order the states in $\mathcal{P}_B$ by their retained scores,
-    using generation order to break ties.
-    \STATE Insert the ordered states into $\mathcal{S}_B$.
-    \STATE Mark $q_B$ as expanded.
+
+    \STATE Sort the states in $\mathcal P_B$ by nondecreasing
+    $s_B$, using generation order to break ties.
+    \STATE Push them onto $\mathcal S_B$ in reverse order.
 \ENDWHILE
-\RETURN $(G_P,\Pi_{\rm first})$.
+
+\STATE Apply the simplification in
+Section~\ref{subsec:final_pruning} to \(G_P\).
+\RETURN $(G_P,\Pi_{\rm init})$.
 \end{algorithmic}
 \end{algorithm}
 
+Algorithm~\ref{alg:otf_pg} summarizes the overall construction
+procedure. When an NBA state \(q_{B,i}\) is expanded, its candidate
+outgoing transitions are generated. Before planning, these transitions
+are simplified using the on-the-fly rule of LTL2BA
+\cite{Gastin2001FastLT}. On-the-fly automaton simplification is one of
+the main improvements of LTL2BA. Each new transition is compared with
+the transitions already generated from the same NBA state. If two
+transitions have the same successor and the condition of one implies that of the other, the former is removed immediately. For each remaining transition
+\(e_{B,ij}:q_{B,i}\xrightarrow{\sigma_{ij}}q_{B,j}\), the plan nodes associated with \(q_{B,i}\) are processed in nondecreasing order of their costs. For each parent--transition pair, \textsc{ExtendPlanGraph} first attempts to generate a feasible successor plan node. An accepting successor terminates its branch and provides a candidate plan. For every other feasible successor, its remaining set is updated and its ordering score is computed according to Eq.~\ref{eq:score}. A feasible
+successor state that has neither been expanded nor placed in \(\mathcal S_B\) is added to \(\mathcal P_B\). If several feasible extensions reach the same successor state, only the smallest score is
+retained. The states in \(\mathcal P_B\) are then ordered by their retained scores and added to \(\mathcal S_B\).
 
-The plan graph is constructed synchronously with the NBA. The root
-node \(\nu_0\) is associated with the initial NBA state \(q_{B,0}\)
-and the initial team configuration. Its subtask and robot-assignment
-fields are empty. For every \(r_k\in\mathcal R\), its predicted
-position and completion time are initialized as
-\(x_0(r_k)=x(r_k)\) and \(\theta_0(r_k)=0\), respectively.
-For a Buchi state $q_B$, there may exist multiple active plan-node anchors attached to it. These anchors correspond to different partial execution contexts reaching the same logical automaton state.
-For an outgoing transition $e_B:q_B\xrightarrow{\sigma}q'_B$ and a parent anchor \(\nu_i\) attached to
-$q_B$, the induced subtask $\omega_{ij}$ is evaluated at the planning level. The planner
-first checks whether a compatible successor anchor already exists at $q'_B$. Compatibility is
-determined by the destination Buchi state, the prefix-suffix progress flag, and the positive/
-negative transition-label signature. If such an anchor exists, the graph adds a structural edge
-from $\nu_i$ to that anchor. The successor runtime payload is recomputed under the new parent
-context, and its representative predecessor is updated only if the new connection yields a
-strictly smaller realized cost. The accepted improvement is then propagated to downstream shared
-successors. If no compatible anchor is available, a new plan node is generated.
-The executable payload of a newly generated successor is obtained by a greedy synchronized assignment.
-For each required action proposition $a\in A(\omega_{ij})$, let
-\begin{equation}
-c(a)=(\tau_a,n_a,l_a)
-\end{equation}
-be its required robot type, required number of robots, and target region. For each eligible robot $r_k
-\in \mathcal R_{\tau_a}$, the predicted arrival time is
-\begin{equation}
-\hat{t}(r_k,a\mid \nu_i)=\theta_i(r_k)+\frac{d_k(x_i(r_k),l_a)}{v(r_k)},
-\end{equation}
-where $d_k(x_i(r_k),l_a)$ is the shortest feasible travel distance for robot $r_k$ from $x_i(r_k)$ to $l_a$. The $n_a$ robots
-with the smallest feasible arrival times are selected, while enforcing that a robot is not
-selected twice within the same synchronized subtask. The selected robots are synchronized at the
-maximum of their arrival times, and their positions and completion times are updated in the
-successor node. If any required action proposition lacks enough eligible robots, the candidate
-successor is infeasible and is discarded.
+% when a newly generated plan node \(\nu_j\) is associated with an NBA state \(q_{B,j}\) 
 
-When the expansion reaches a completed prefix-suffix structure, the temporary dead child is not
-retained as an ordinary plan node. Instead, its parent is recorded as a feasible solution leaf.
-The corresponding executable plan is then extracted through the representative-predecessor chain.
-If a newly generated anchor reaches a Buchi state whose outgoing structure has already been
-expanded, the Buchi state itself is not expanded again; instead, the new anchor is connected back
-to compatible existing successors at that state whenever possible. This late-anchor recovery
-allows additional execution contexts to reuse already generated successor structure without
-duplicating the whole suffix graph.
+% that has already been expanded, the outgoing NBA transitions of \(q_{B,j}\) are not generated again. Instead, \(\nu_j\) is connected to each existing successor plan node \(\nu_h\)
+% generated from the same NBA state and progress flag. If \(J(\nu_j)\) is smaller than the costs of all other parent nodes of \(\nu_h\), then \(\nu_j\) becomes its representative predecessor. The robot assignment
+% and predicted execution state of \(\nu_h\) are recomputed from \(\nu_j\), and the update is propagated to its descendants. Otherwise, only the new edge is retained, and the stored execution state of \(\nu_h\) remains unchanged.
 
-% The construction starts from the root plan node \(\nu_0\). During the NBA construction,  when an
-% NBA state \(q_B\) is expanded, its outgoing transitions are generated from the corresponding GBA transitions.For each newly generated NBA transition \(q_B \xrightarrow{\sigma} q_B'\), a new plan node associated with \(q_B'\) is then generated. The  corresponding robot assignment for this subtask is generated greedily according to the predicted robot positions and completion times stored in the parent plan node. The predicted robot positions and completion times are
-% then updated according to the robot assignment. When the successor NBA state \(q_B'\) has not been expanded before, the newly inserted plan node will be used in the subsequent DFS expansion
-% of \(q_B'\). When \(q_B'\) has already been expanded, the algorithm avoids regenerating its outgoing NBA transitions and instead reuses the existing successor structure. Specifically, prefix-stage nodes
-% can share successor structures only with prefix-stage nodes, whereas suffix-stage nodes can share successor structures only with suffix-stage nodes associated with the same suffix root.
-
-% The pruning rules are applied during this incremental construction to discard infeasible or unpromising candidate nodes. In particular, a candidate node is removed if its subtask cannot be assigned to the robot team under the current predicted state, or if its lower bound cannot improve the current best solution. Once a node completing an accepting prefix--suffix structure is generated, a feasible plan is obtained by tracing back from this node to the root node. The resulting plan is used as the warm-start initial solution for the subsequent branch-and-bound optimization.
-
-%补充伪代码以及介绍
-
+Whenever a returned plan node \(\nu_j\) satisfies
+\(\nu_j.\mathrm{Prog}=\mathrm{acc}\), its plan is extracted. The
+extracted plan replaces \(\Pi_{\rm init}\) only if
+\(\Pi_{\rm init}\) is empty or \(J(\nu_j)<T(\Pi_{\rm init})\).
+Therefore, \(\Pi_{\rm init}\) stores the lowest-cost accepting plan
+found during construction. After all pending NBA states have been
+processed, the plan graph is simplified according to
+Section~\ref{subsec:final_pruning}. The algorithm then returns the
+simplified plan graph \(G_P\) and \(\Pi_{\rm init}\).
+The \textsc{ExtendPlanGraph} procedure is presented in
+Algorithm~\ref{alg:extend_successor}.
 
 \begin{algorithm}[H]
-\caption{\textsc{ExtendPlanGraph}: plan-graph extension for an NBA transition}
+\caption{\textsc{ExtendPlanGraph}}
 \label{alg:extend_successor}
 \begin{algorithmic}[1]
 \REQUIRE Plan graph $G_P$, parent node $\nu_i$, NBA transition
-$e_B:q_{B,i}\xrightarrow{\sigma}q'_{B}$, and robot team $\mathcal R$.
-\ENSURE Successor plan node $\nu'$.
-\STATE Obtain the induced subtask $\omega=(\sigma,\sigma_i^{s})$.
-\STATE Compute the successor progress flag $\operatorname{Prog}'$ and the transition-label signature $\operatorname{Sig}(\omega)$.
-\STATE $\hat{\nu}\gets$ compatible anchor at $(q'_B,\operatorname{Prog}',\operatorname{Sig}(\omega))$, if one exists.
+$e_{B,ij}:q_{B,i}\xrightarrow{\sigma_{ij}}q_{B,j}$, and robot team $\mathcal R$.
+\ENSURE Successor plan node $\nu_j$, or $\emptyset$ if the assignment fails.
+\STATE Obtain the induced subtask
+$\omega_{ij}=(\sigma_{ij},\sigma_i^{\mathrm{s}})$.
+\STATE Compute the successor progress flag $\mathrm{Prog}_j$, setting
+$\mathrm{Prog}_j\gets\mathrm{acc}$ if the extension completes an
+accepting prefix--suffix structure.
+\STATE $\nu_h\gets$ a plan node associated with $q_{B,j}$ whose progress flag is $\mathrm{Prog}_j$ and whose subtask is $\omega_{ij}$, if one exists.
 \STATE $(\hat{\mathcal C},\hat{X},\hat{\Theta},\hat{J})\gets
-\textsc{GreedyAssign}(\omega,\nu_i,\mathcal R)$.
-\IF{\textsc{GreedyAssign} is infeasible}
-    \STATE Set $\nu'.\mathrm{Prog}\gets\mathrm{dead}$.
-    \RETURN $\nu'$.
+\textsc{GreedyAssign}(\omega_{ij},\nu_i,\mathcal R)$.
+\IF{\textsc{GreedyAssign} fails}
+    \RETURN $\emptyset$.
 \ENDIF
-\IF{$\hat{\nu}$ exists}
-    \STATE Add the structural edge $(\nu_i,\hat{\nu})$ to $E_P$.
-    \IF{$\hat{J}$ improves the representative payload of $\hat{\nu}$}
-        \STATE Update $\operatorname{par}(\hat{\nu})$, $\hat{\mathcal C}$, $\hat{X}$, and $\hat{\Theta}$; propagate the improvement to descendants.
+\IF{$\nu_h$ exists}
+    \STATE Add $(\nu_i,\nu_h)$ to $E_P$.
+    \IF{$\hat{J}<J(\nu_h)$}
+        \STATE Set $\operatorname{par}(\nu_h)\gets\nu_i$, $\mathcal C_h\gets\hat{\mathcal C}$, $X_h\gets\hat{X}$, and $\Theta_h\gets\hat{\Theta}$; propagate the improvement to descendants.
     \ENDIF
-    \STATE $\nu'\gets\hat{\nu}$.
+    \STATE $\nu_j\gets\nu_h$.
 \ELSE
-    \STATE Create $\nu'=(q'_B,\operatorname{Prog}',\omega,\hat{\mathcal C},\hat{X},\hat{\Theta})$.
-    \STATE Set $\operatorname{par}(\nu')\gets\nu_i$, insert $\nu'$ into $V_P$, and add $(\nu_i,\nu')$ to $E_P$.
+    \STATE Create $\nu_j=(q_{B,j},\mathrm{Prog}_j,\omega_{ij},\hat{\mathcal C},\hat{X},\hat{\Theta})$.
+    \STATE Set $\operatorname{par}(\nu_j)\gets\nu_i$, insert $\nu_j$ into $V_P$, and add $(\nu_i,\nu_j)$ to $E_P$.
 \ENDIF
-\IF{$\nu'$ completes an accepting prefix--suffix structure}
-    \STATE Set $\nu'.\mathrm{Prog}\gets\mathrm{acc}$.
-    \STATE Record $\nu'$ as a feasible solution leaf.
+\IF{$\nu_j.\mathrm{Prog}=\mathrm{acc}$}
+    \STATE Record $\nu_j$ as a feasible solution leaf.
 \ENDIF
-\RETURN $\nu'$.
+\RETURN $\nu_j$.
 \end{algorithmic}
 \end{algorithm}
-\subsubsection{Child Node Generation} \label{gen}
+\subsubsection{ExtendPlanGraph} \label{gen}
 
-The plan graph is grown by extending a plan node \(\nu_i\) along the outgoing NBA transitions of its associated state \(q_{B,i}\). For each transition \(e_B:q_{B,i}\xrightarrow{\sigma}q_B'\), the induced subtask is determined by the transition condition \(\sigma\) together with the self-loop condition \(\sigma_i^{\mathrm{s}}\) at \(q_{B,i}\), i.e., \(\omega_j=(\sigma,\sigma_i^{\mathrm{s}})\). The corresponding child handling then produces a successor associated with \(q_B'\) by extending the partial plan rooted at \(\nu_i\). 
+Algorithm~\ref{alg:extend_successor} extends the plan graph from a parent plan node \(\nu_i\) along an NBA transition
+\(e_{B,ij}\).
+It first constructs the induced subtask
+\(\omega_{ij}=(\sigma_{ij},\sigma_i^{\mathrm{s}})\) and computes the
+successor progress flag \(\mathrm{Prog}_j\). The flag records whether
+the extension remains in the prefix stage, enters the suffix stage, or
+completes an accepting prefix--suffix structure.
+An existing plan node \(\nu_h\) is compatible with this extension if it is associated with \(q_{B,j}\) and satisfies
+\(\mathrm{Prog}_h=\mathrm{Prog}_j\) and \(\omega_h=\omega_{ij}\).
 
-The successor state is evaluated through a greedy synchronized task-assignment procedure. Let \(\mathcal{A}(\omega_j)\subseteq A\) denote the set of action propositions required by \(\omega_j\), and let \(c(a_\ell)=(\tau_\ell,n_\ell,l_\ell)\) denote the execution requirement of \(a_\ell\in\mathcal{A}(\omega_j)\), where \(\tau_\ell\), \(n_\ell\), and \(l_\ell\) are the required robot type, required number of robots, and target region, respectively. For each candidate robot \(r_k\in\mathcal{R}_{\tau_\ell}\), the predicted arrival time to \(l_\ell\) is estimated by
-\[
-\hat{\theta}_{\ell}(r_k)=\theta_i(r_k)+\frac{d_k(x_i(r_k),l_\ell)}{v(r_k)},
-\]
-where \(x_i(r_k)\) and \(\theta_i(r_k)\) are the predicted position and predicted completion time of robot \(r_k\) at \(\nu_i\). The \(n_\ell\) robots with the smallest predicted arrival times are selected, synchronized at the maximum of their predicted arrival times, and then used to update the predicted positions and completion times in the successor node. If fewer than \(n_\ell\) eligible robots are available, the candidate is declared infeasible and discarded. The planning stage of the successor is updated according to the prefix--suffix progress of the current path: the expansion remains in the prefix stage until an accepting NBA state is reached, switches to the suffix stage when such a state is crossed from the prefix stage, and, once an accepting prefix--suffix execution is completed, immediately yields a feasible incumbent online. In this sense, child generation is guided by executable task assignments and their realized costs, while the detailed priority policy among generated successors is deferred to the traversal rules described next.
+The procedure next calls function \textsc{GreedyAssign}\((\omega_{ij},\nu_i,\mathcal R)\) to evaluate the candidate extension. For each required action proposition \(a_\ell\in\mathcal A(\omega_{ij})\), the execution requirement \(c(a_\ell)=(\tau_\ell,n_\ell,l_\ell)\) specifies the required robot
+type, number of robots, and target region. For every robot
+\(r_k\in\mathcal R_{\tau_\ell}\), its predicted arrival time from
+\(\nu_i\) is computed as follows.
+\begin{equation}
+\hat t_i(r_k,a_\ell)
+=
+\theta_i(r_k)
++
+\frac{d_k(x_i(r_k),l_\ell)}{v(r_k)}.
+\label{eq:predicted_arrival}
+\end{equation}
+Here, \(x_i(r_k)\) and \(\theta_i(r_k)\) are stored in \(\nu_i\).
+A robot is eligible for \(a_\ell\) if its predicted arrival time is
+finite and it has not been assigned to another action proposition in
+the same subtask.
+
+The action propositions in \(\mathcal A(\omega_{ij})\) are processed
+in increasing order of their indices. For each \(a_\ell\), the
+\(n_\ell\) eligible robots with the smallest predicted arrival times
+are selected and stored in \(\hat{\mathcal C}(a_\ell)\). The predicted
+positions of the selected robots are updated to the corresponding
+target regions, and their predicted completion times are set to the
+latest predicted arrival time among all robots assigned to
+\(\omega_{ij}\). Robots not assigned to \(\omega_{ij}\) retain their
+states from \(X_i\) and \(\Theta_i\).
+
+These updates produce
+\(\hat X=(\hat x(r_1),\ldots,\hat x(r_{n_r}))\) and
+\(\hat\Theta=(\hat\theta(r_1),\ldots,\hat\theta(r_{n_r}))\).
+The resulting node cost is
+\(\hat J=\max_{r_k\in\mathcal R}\hat\theta(r_k)\).
+If fewer than \(n_\ell\) eligible robots are available for any required
+action proposition, \textsc{GreedyAssign} fails and the candidate
+extension is discarded.
+
+If \textsc{GreedyAssign} succeeds and a compatible plan node
+\(\nu_h\) exists, \textsc{ExtendPlanGraph} adds
+\((\nu_i,\nu_h)\) to \(E_P\). If \(\hat J<J(\nu_h)\), the representative predecessor of \(\nu_h\) is updated to \(\nu_i\). Its robot assignment, predicted positions, and predicted completion times are replaced by
+\(\hat{\mathcal C}\), \(\hat X\), and \(\hat\Theta\), respectively. The resulting improvement is then propagated to its successor nodes. If no compatible plan node exists, a new node
+\(\nu_j=(q_{B,j},\mathrm{Prog}_j,\omega_{ij},
+\hat{\mathcal C},\hat X,\hat\Theta)\) is created.
+Its representative predecessor is set to \(\nu_i\). The new node is inserted into \(V_P\), and the edge \((\nu_i,\nu_j)\) is added to \(E_P\).
+
+
+\subsubsection{Reuse of Existing Successors}
+
+When a plan node \(\nu_j\) reaches an NBA state \(q_{B,j}\) that has
+already been expanded, its outgoing NBA transitions and successor
+structure are already available. Therefore, these transitions are not
+generated again. The \textsc{ReuseSuccessors} procedure connects
+\(\nu_j\) to the existing successor plan nodes and determines whether
+their representative execution states should be updated.
+
+\begin{algorithm}[H]
+\caption{\textsc{ReuseSuccessors}}
+\label{alg:reuse_successors}
+\begin{algorithmic}[1]
+\REQUIRE Plan graph \(G_P\), plan node \(\nu_j\) associated with
+\(q_{B,j}\in Q_B^{\rm exp}\), and robot team \(\mathcal R\).
+\ENSURE Updated plan graph \(G_P\).
+
+\FORALL{$(\nu_p,\nu_h)\in E_P:
+q_{B,p}=q_{B,j},\
+\mathrm{Prog}_p=\mathrm{Prog}_j,\
+(\nu_j,\nu_h)\notin E_P$}
+    \STATE Add \((\nu_j,\nu_h)\) to \(E_P\).
+    \IF{$J(\nu_j)<
+    \min\{J(\nu_\ell)\mid
+    (\nu_\ell,\nu_h)\in E_P,\
+    \nu_\ell\neq\nu_j\}$}
+        \STATE Set \(\operatorname{par}(\nu_h)\gets\nu_j\).
+        \STATE Recompute \(\mathcal C_h\), \(X_h\), and
+        \(\Theta_h\) from \(\nu_j\).
+        \STATE Propagate the update to the descendants of \(\nu_h\).
+    \ENDIF
+\ENDFOR
+\end{algorithmic}
+\end{algorithm}
+
+For each existing successor \(\nu_h\), the new edge is retained. If
+\(\nu_j\) has the smallest cost among the parent nodes of \(\nu_h\),
+it is selected as the representative predecessor. The robot
+assignment and predicted execution state of \(\nu_h\) are then
+recomputed from \(\nu_j\). Its cost is updated accordingly, and the
+updated state is propagated to its descendants. Otherwise, the
+representative predecessor and the stored execution state of
+\(\nu_h\) remain unchanged.
+This cost-based update follows the planning-decision-tree rule of
+Chen et al.~\cite{Chen2024RealTimeReactive}, which was validated
+experimentally.
 
 
 
 %补充伪代码、例子
-\subsubsection{Residual-Obligation Scoring of B\"uchi State}
+\subsubsection{Residual-Obligation Scoring of NBA States}
 
-To bias on-the-fly B\"uchi expansion toward successors with lower residual obligation pressure, we assign a lightweight heuristic score to each parent-transition pair \((p,\tau)\), where \(p\) is the current plan node and \(\tau\) is a candidate B\"uchi transition. The score is computed from the remaining must-eventually propositions together with the current execution state carried by \(p\).
+After a feasible nonaccepting successor plan node has been generated,
+Algorithm~\ref{alg:otf_pg} updates its remaining set and computes the
+ordering score \(S(\nu_i,e_{B,ij})\). The score is used to order the
+successor NBA state \(q_{B,j}\) in the current pending set
+\(\mathcal P_B\). It combines the current plan cost
+\(J(\nu_i)\) with an estimate of the positive action requirements that
+remain.
 
-we recursively extract a must-eventually set from the abstract syntax tree (AST) of the task formula. For the global LTL formula \(\varphi\), we define a recursive mapping \(\mathsf{ME}(\cdot)\) on the subformulas in the AST of \(\varphi\). Here, \(\psi\) denotes an arbitrary subformula of \(\varphi\). For such a subformula \(\psi\), \(\mathsf{ME}(\psi)\subseteq A\) denotes the set of positive action propositions that are extracted as unavoidable when \(\psi\) is recursively evaluated. The must-eventually set of the original task formula is then given by $M=\mathsf{ME}(\varphi)$.The recursive rules for computing $\mathsf{ME}(\psi)$ are defined as follows.
+This estimate is based on a must-eventually action set extracted once
+from the abstract syntax tree \(\mathcal T_\varphi\). For each
+subformula \(\psi\), \(\mathsf{ME}(\psi)\subseteq\mathcal A\) denotes
+a set of positive action propositions that must each be executed at
+least once during the subsequent execution for \(\psi\) to be
+satisfied. This set is obtained using the recursive rules below. The
+remaining set associated with each plan node \(\nu_i\) is denoted by
+\(\mathcal M_i\). At the root node \(\nu_0\), it is initialized as
+\(\mathcal M_0=\mathsf{ME}(\varphi)\). In AST,
+\(\lozenge\psi\) and \(\square\psi\) are represented in
+\(\mathcal T_\varphi\) as \(\top\,\mathcal U\,\psi\) and
+\(\bot\,\mathcal V\,\psi\), respectively.
 \begin{enumerate}
  \item  The constants \(\top\) and \(\bot\) do not introduce any positive action proposition that must be completed. That is, if \(\psi=\top\) or \(\psi=\bot\), then $\mathsf{ME}(\psi)=\emptyset .$
- \item  Only positive action propositions are included in the lower-bound estimate. A negated formula imposes a prohibition rather than a positive action proposition that must be completed, i.e. If \(\psi=\neg\psi_1\), then $\mathsf{ME}(\psi)=\emptyset $ and if \(\psi= a \in \mathcal{A}\), then $\mathsf{ME}(\psi)=a $
+ \item If \(\psi=a\) with \(a\in\mathcal A\), then
+ \(\mathsf{ME}(\psi)=\{a\}\). If \(\psi=p\) with
+ \(p\in\mathcal P\), or if \(\psi=\neg\pi\) with
+ \(\pi\in\mathcal{AP}\), then
+ \(\mathsf{ME}(\psi)=\emptyset\). That is, only positive action
+ propositions are included.
   \item If \(\psi=\psi_1\wedge\psi_2\), then $  \mathsf{ME}(\psi)=\mathsf{ME}(\psi_1)\cup \mathsf{ME}(\psi_2).$
     Since both subformulas must be satisfied, the action propositions are collected from both sides.
   \item If \(\psi=\psi_1\vee\psi_2\), then $  \mathsf{ME}(\psi)= \mathsf{ME}(\psi_1)\cap \mathsf{ME}(\psi_2). $
     Since either branch may be selected, only action propositions that are unavoidable in both branches are kept.
   \item If \(\psi=\bigcirc\psi_1\), then $\mathsf{ME}(\psi)=\mathsf{ME}(\psi_1). $ The next operator shifts the satisfaction time but does not change the unavoidable positive action propositions.
-  % \item If \(\psi=\psi_1\,\mathcal{U}\,\psi_2\), then $\mathsf{ME}(\psi)=\mathsf{ME}(\psi_2).$ For an until formula, satisfaction requires the right-hand  subformula to eventually hold.
-  % \item If \(\psi=\psi_1\,\mathcal{V}\,\psi_2\), then $\mathsf{ME}(\psi)=\mathsf{ME}(\psi_2).$ In the implemented rule for the release operator, the positive action requirements from the right-hand subformula are extracted.
-  \item If \(\psi=\Box\psi_1\) or \(\psi=\Diamond\psi_1\), then $\mathsf{ME}(\psi)=\mathsf{ME}(\psi_1). $
-    The always and eventually operators preserve the positive action propositions appearing in the operand.
+  \item If
+  \(\psi=\psi_1\,\mathcal U\,\psi_2\) or
+  \(\psi=\psi_1\,\mathcal V\,\psi_2\), then
+  \(\mathsf{ME}(\psi)=\mathsf{ME}(\psi_2)\), where
+  \(\mathcal V\) denotes the release operator. In both cases, the
+  positive action propositions retained from the right operand must be
+  satisfied during the subsequent execution.
 \end{enumerate}
 
-Based on the above recursive rules, the must-eventually set of the global task formula is obtained as $M$.
-The set \(M\) should not be interpreted as the set of action propositions that must be satisfied immediately at the current plan node. Instead, it provides a formula-level summary of unavoidable positive action propositions. This summary is used to estimate the minimum remaining effort when the future subtasks have not been fully generated during the incremental NBA construction.
+The set \(\mathcal M_i\) is a formula-level summary of unavoidable positive action propositions rather than a set that must be satisfied immediately at the node $\nu_i$. It is used to estimate the remaining
+effort before all future subtasks have been generated.
 
-
-Consider a parent plan node $\nu_i$ attached to \(q_B\) and a candidate transition \(\tau:q_B\xrightarrow{\sigma}q'_B\). Let \(A^+(\nu_i,\tau)\) be the progress summary obtained by combining the
-positive propositions already satisfied along the representative context with the positive
-propositions asserted by $\tau$. The residual obligation set is
+For a feasible successor plan node \(\nu_j\), its remaining set
+combines those of its parent nodes and then removes the positive action
+propositions executed by the induced subtask. It is updated as follows.
 \begin{equation}
-\mathcal{R}(\nu_i,\tau)=\mathcal{M}\setminus A^+(\nu_i,\tau).
+\mathcal M_j
+=
+\left(
+\bigcup_{(\nu_i,\nu_j)\in E_P}\mathcal M_i
+\right)
+\setminus
+\mathcal A(\omega_{ij}).
 \end{equation}
-For each $a\in\mathcal{R}(\nu_i,\tau)$ with $c(a)=(\tau_a,n_a,l_a)$, we compute the arrival-time
-estimates of all robots in $R_{\tau_a}$ from the current payload of $\nu_i$ and take the $n_a$-th
-smallest value, denoted by $h_a(\nu_i)$. The residual pressure of $(\nu_i,\tau)$ is
+For each $a\in\mathcal M_j$ with $c(a)=(\tau_a,n_a,l_a)$, we compute the arrival-time
+estimates of all robots in $\mathcal R_{\tau_a}$ using the predicted positions $X_i$ and completion
+times $\Theta_i$ stored in $\nu_i$, and take the $n_a$-th
+smallest value, denoted by $h_a(\nu_i)$. The residual pressure of $(\nu_i,e_{B,ij})$ is
 \begin{equation}
-H(\nu_i,\tau)=
+H(\nu_i,e_{B,ij})=
 \begin{cases}
-\max_{a\in\mathcal{R}(\nu_i,\tau)} h_a(\nu_i), & \mathcal{R}(\nu_i,\tau)\neq\emptyset,\\
-J_i, & \mathcal{R}(\nu_i,\tau)=\emptyset.
+\max_{a\in\mathcal M_j} h_a(\nu_i), & \mathcal M_j\neq\emptyset,\\
+J(\nu_i), & \mathcal M_j=\emptyset.
 \end{cases}
 \end{equation}
 The candidate score is
-\begin{equation}
-S(\nu_i,\tau)=\max\{J_i,H(\nu_i,\tau)\}.
+\begin{equation} \label{eq:score}
+S(\nu_i,e_{B,ij})=\max\{J(\nu_i),H(\nu_i,e_{B,ij})\}.
 \end{equation}
-If the same successor Buchi state is discovered from multiple active anchors in the current pending
+If the same successor NBA state is discovered from multiple active plan nodes in the current pending
 batch, the smallest candidate score is retained for ordering that successor in the batch.
 
-% Consider a source B\"uchi state \(q_B\), an outgoing transition
-% \(\tau: q_B \xrightarrow{\sigma} q_B'\), and an active plan node \(p\) currently attached to \(q_B\).
-% Let \(J(p)\) denote the current cost of \(p\), and let \(M\subseteq A\) be the set of must-eventually atomic propositions extracted from the task formula. For the candidate expansion \((p,\tau)\), we first determine the set of residual obligations that would remain after taking \(\tau\). To this end, we construct a shared progress summary for the target state \(q_B'\): if \(q_B'\) already contains compatible active anchors, i.e., anchors with the same stage and the same positive/negative transition signature as \(\tau\), their progress summaries are combined by intersection; otherwise, the summary carried by \(p\) is used directly. After incorporating the positive literals asserted by \(\tau\), we obtain the residual must-eventually set
-% \[
-% R(p,\tau)=M\setminus A^{+}(p,\tau),
-% \]
-% where \(A^{+}(p,\tau)\) denotes the updated progress summary after applying \(\tau\).
-
-% For each residual atomic proposition \(a\in R(p,\tau)\), let
-% \[
-% c(a)=(\mathrm{type}(a),\,n(a),\,l(a))
-% \]
-% denote its required robot type, multiplicity, and target region. Using the current execution state stored at \(p\), we estimate a relaxed lower bound for satisfying \(a\) alone. Specifically, for every robot \(r\) of the required type, we compute its arrival time
-% \[
-% t_r(p,a)=\mathrm{ET}_p(r)+\frac{d(\mathrm{EP}_p(r),\,l(a))}{v_r},
-% \]
-% where \(\mathrm{ET}_p(r)\) and \(\mathrm{EP}_p(r)\) are the current completion time and position of robot \(r\), respectively. Sorting these arrival times in nondecreasing order,
-% \[
-% t_{(1)}(p,a)\le t_{(2)}(p,a)\le \cdots,
-% \]
-% the relaxed lower bound for proposition \(a\) is defined as
-% \[
-% \underline{t}(p,a)=t_{(n(a))}(p,a).
-% \]
-% This estimate ignores the coupling constraint that the same robot cannot simultaneously execute two different future tasks; therefore, it is a relaxed bound on satisfying \(a\) individually.
-
-% The residual pressure induced by \((p,\tau)\) is then defined by the bottleneck over all remaining obligations:
-% \[
-% H(p,\tau)=
-% \begin{cases}
-% \max\limits_{a\in R(p,\tau)} \underline{t}(p,a), & R(p,\tau)\neq\emptyset,\\[4pt]
-% J(p), & R(p,\tau)=\emptyset.
-% \end{cases}
-% \]
-% The heuristic score of the candidate expansion \((p,\tau)\) is given by
-% \[
-% S(p,\tau)=\max\bigl(J(p),\,H(p,\tau)\bigr).
-% \]
-% Hence, \(S(p,\tau)\) combines the cost already accumulated along the current partial plan with a relaxed estimate of the remaining must-eventually obligations.
-
-% Finally, a candidate successor B\"uchi state \(q_B'\) may be reachable from multiple active plan nodes attached to \(q_B\). In that case, the score retained for \(q_B'\) is the best one among all candidate expansions:
-% \[
-% \mathrm{Score}(q_B')=\min_{p\in\mathcal{P}(q_B)} S(p,\tau),
-% \]
-% where \(\mathcal{P}(q_B)\) is the set of active plan nodes associated with \(q_B\). Therefore, the implementation first evaluates each parent-specific expansion by a relaxed obligation-based estimate, and then keeps the minimum score as the priority signal for the pending B\"uchi successor.
 
 
-\subsection{Traversal Rules}
-The shared plan graph is generated according to three rules.
-First, for a fixed Buchi state, active plan-node anchors are expanded in nondecreasing realized cost.
-This favors cheaper execution contexts when several partial plans reach the same Buchi state,
-but it remains a local rule for the current state.
 
-Second, successor nodes are created through compatible-anchor reuse whenever possible. A successor
-anchor is compatible only when it matches the destination Buchi state, the prefix-suffix progress
-flag, and the transition-label signature. Reusing an anchor adds a structural graph edge. The
-representative predecessor and runtime payload of the shared node are changed only when the new
-parent yields a strictly lower realized cost, in which case the improvement is propagated to
-downstream successors.
-
-Third, newly discovered successor Buchi states are collected in the current pending batch. After the current Buchi state has been processed, these successors are inserted into the later expansion stack according to their retained residual-obligation scores, with the original discovery order used as a tie breaker. Therefore, the score changes the local discovery order of newly generated Buchi states, rather than defining a global priority queue.
-% The current implementation constructs a shared directed plan graph and applies the following traversal rules.
-
-% \begin{enumerate}
-% \item \textbf{Local expansion order.}
-% For a fixed B\"uchi state, the currently active parent anchors are processed in nondecreasing realized cost. This ordering is only a local exploration preference for that state; it is not a global best-first guarantee over the full graph.
-
-% \item \textbf{Local candidate precheck.}
-% Before expanding a candidate transition from a given parent context, the implementation may apply a limited local ancestor-repeat precheck on selected entry paths. This precheck filters some locally redundant candidates, but it does not guarantee that the retained shared graph is acyclic.
-
-% \item \textbf{Dynamic reuse, reconsideration, and fresh generation.}
-% For each outgoing B\"uchi transition, the child phase is derived from the parent phase and current progress context. The planner then seeks compatible previously constructed structure at the destination state, where compatibility is defined by the destination B\"uchi state, the induced phase, and the positive/negative transition-label signature. In this step, the implementation may reconnect to an already active compatible node or reconsider a previously suspended branch of the same signature when a lower-cost incoming parent context becomes available. If neither option is suitable, a new child is generated, provided that the induced synchronized task assignment is feasible.
-
-% \item \textbf{Cost-based representative-state update.}
-% Whenever an existing compatible node is reused, its state is recomputed under the new parent context. Each shared node maintains a representative predecessor rather than an immutable first predecessor. This representative state is updated only when the recomputation yields a strictly smaller realized cost, and any accepted improvement is propagated forward through the reused shared structure.
-
-% \item \textbf{Late-arrival recovery.}
-% If a newly created node reaches a state whose outgoing structure has already been explored, the node is retained rather than discarded. The implementation then attempts to reconnect it to compatible already existing successors at that state and, when useful, may extend this recovery over newly recovered local successors. Hence, successor sharing is determined dynamically by the evolving graph structure and lower-cost reconnections, rather than by a fixed static rule.
-
-% \item \textbf{Inactive-branch treatment.}
-% The implementation distinguishes between discarded failed branches and retained dormant stopped branches. In the former case, the node is removed only from the current local graph context and marked inactive. In the latter case, the stopped node is excluded from ordinary forward traversal but may still be reconsidered by the dynamic reuse policy above. In particular, inactive handling is not implemented as an eager recursive backward release of the entire ancestor chain.
-
-% \item \textbf{Post-construction simplification.}
-% After graph generation, the implementation performs a distinct simplification pass. First, it identifies the live corridor by tracing backward from accepting nodes and removes edges or subgraphs outside that corridor. Second, it cleans up structure associated with hard-dead states and retained stopped remnants that no longer support any live accepting corridor. Third, among sibling successors of the same parent, it prunes locally dominated alternatives when one child subgraph covers another with no larger realized cost. In the current implementation, this post-construction pass is the main mechanism for removing redundant retained structure.
-% \end{enumerate}
-% During the construction of \(G_P\), candidate child nodes are generated from NBA transitions and then evaluated by task
-% assignment, state update, and lower-bound estimation. However, if all generated candidates are kept, the plan graph may still grow rapidly for complex temporal-logic tasks. To control the search space and avoid unnecessary expansion, the following traversal rules are introduced.
-% \begin{enumerate}
-% \item For any path in \(G_P\), if expanding a candidate child node would make the same NBA state--stage pair appear more than once along this path, then the corresponding branch is stopped. More specifically, a repeated pair \((q_B,\mathrm{Prog})\) on the same path is regarded as a structurally redundant revisit. Such a node is marked as \(\mathrm{DEAD}\) and will not be further expanded. With this rule, each retained branch is acyclic.
-
-% \item For a candidate child node, if the subtask induced by the corresponding NBA transition cannot be assigned to the robot
-% team under the predicted robot state of its parent node, then the candidate is marked as \(\mathrm{DEAD}\).
-
-% \item  For each generated plan node, the lower-bound estimation function evaluates an optimistic lower bound on the best
-% complete prefix--suffix plan that can be extended from this node. If this lower bound is no smaller than the current
-% best cost, then the corresponding branch cannot improve the best solution found so far. The branch is therefore pruned
-% during the construction of \(G_P\).
-
-% \item After all reachable NBA states have been processed, a bottom-up graph simplification is performed. This step removes
-% terminal structures that cannot reach any accepting terminal node and keeps only the subgraph that can contribute to at least one feasible prefix--suffix plan.
-
-% \item If a newly generated plan node reaches an NBA state for which a plan node with the same planning stage has already been expanded, the algorithm does not regenerate the outgoing NBA transitions or duplicate the already constructed successor structure. Instead, the new node is connected to the existing successor structure when the sharing condition is satisfied. Prefix-stage nodes can share successor structures only with prefix-stage nodes. Suffix-stage nodes can share successor
-% structures only with suffix-stage nodes associated with the same suffix root. This rule reduces repeated suffix expansion while
-% preventing prefix and suffix structures with different semantics from being incorrectly merged. This rule is different from the first rule. This rule handles the case where different paths reach NBA states with the same planning-stage semantics.
-% \end{enumerate}
-
-% A node marked as \(\mathrm{DEAD}\) is released. If its parent node has no other retained child, the parent node is also released recursively. This backward release
-% process stops when reaching a node that still has at least one retained child or when reaching the root node. Therefore, dead
-% branches are released as early as possible without destroyingshared successor structures that are still used by other retained paths.
-
-% The above traversal rules  reduce both vertical and horizontal expansion of \(G_P\). Repeated state--stage visits on the same path are stopped to avoid cycles, infeasible task
-% assignments and noncompetitive lower-bound branches are discarded, and repeated successor structures reached from different paths are shared whenever their planning stages are consistent. After construction, a bottom-up simplification further removes structures that cannot reach any accepting terminal node.
-
-\subsection{Final Post-Construction Pruning}
+\subsection{Plan-Graph Simplification}
 \label{subsec:final_pruning}
 
-% After the shared plan graph has been constructed, we apply a final simplification pass from the root. In the implementation, this pass is invoked once as
-% \texttt{simplify\_plan\_tree}$(pRoot,\texttt{HARD\_DEAD\_BSTATE\_ADDRS})$,
-% where $\mathcal{D}_{\mathrm{hard}}$ denotes the supplied set of hard-dead specification-state pointers. The pass removes child links that cannot support a root-to-accepting continuation, while respecting that a plan node may be shared by multiple parents.
+After the plan graph has been constructed, nodes and edges that cannot
+contribute to an accepting plan are removed through two simplification
+steps.
+First, the simplification starts from the root node \(\nu_0\) and
+follows the outgoing edges in \(E_P\). Each reached plan node is
+marked and retained. After all reachable nodes have been identified,
+every unmarked plan node is removed together with its incident edges.
 
-% The pass first marks live nodes. Starting from the root, it traverses active child links to identify the root-reachable subgraph. Reachable accepting nodes initialize the live set, and liveness is then propagated backward through parent links. Thus, a live node is root-reachable and lies on an active path that can reach at least one reachable accepting node. The retention condition is that a non-accepting node must keep at least one active child link into the live set, whereas an accepting node may terminate a continuation and is retained even as a leaf.
-
-% Pruning is performed in an edge-first manner. For each active child link, the link is removed if the child is not in the live set, if the child is non-accepting and has no live successor, if the child's specification-state pointer belongs to $\mathcal{D}_{\mathrm{hard}}$, if the child carries the \textsc{cut} flag, or if recursive simplification returns false. The same pruning is applied recursively below retained children; after descendants are pruned, a non-accepting child that no longer satisfies the live-successor condition is also removed. Because the graph is shared, removing a link does not immediately retire or free the child node itself. A child node is retired only after all of its incoming parent links have been removed, preventing one parent from freeing a subgraph that is still referenced elsewhere.
-
-% The pass also applies local sibling dominance pruning. For each parent, children are compared only with siblings having the same local signature
-% \[
-%     \sigma(v)=
-%     \big(q(v),\,F(v),\,P^+(v),\,P^-(v),\,\bar P^+(v)\big),
-% \]
-% where $q(v)$ is the specification-state pointer, $F(v)$ is the node flag, and $P^+(v)$, $P^-(v)$, and $\bar P^+(v)$ are the positive, negative, and already-satisfied proposition tuples. Within a common parent and signature class, a candidate child may dominate another child only if a recursive structural coverage test succeeds and the candidate's stored node cost is no larger, up to the numerical tolerance used in implementation. When domination holds, only the dominated sibling link is removed; the child node is retired only if it has no remaining parents. The resulting graph is a compacted post-construction representation, with no claim of global minimality or optimality, that retains accepting leaves and surviving branches under the stated tests.
-After the shared plan graph has been constructed, a graph-level simplification pass is applied from
-the root. This pass does not minimize the Buchi automaton and does not claim to produce a
-globally minimal plan graph. Its purpose is to remove graph portions that cannot contribute to an
-accepting plan and to reduce local redundancy before branch-and-bound optimization.
-The simplification first identifies the live corridor. Starting from the root, it collects the
-reachable plan nodes and then propagates liveness backward from reachable accepting nodes or
-recorded solution leaves. A node is live if it is root-reachable and lies on at least one active
-path that can reach an accepting continuation. Edges to non-live nodes are removed. Nodes
-associated with hard-dead automaton states or internal cut marks are also removed when they do
-not support any live accepting corridor. Since the graph is shared, removing an edge does not
-immediately delete the child node; the child is retired only when it has no remaining structural
-parent.
-
-The pass then performs local sibling-dominance simplification. For children of the same parent with
-the same local signature, a child edge can be removed if another sibling covers its successor
-structure with no larger realized cost. This operation is local to the shared plan graph and
-preserves the accepting corridors retained by the liveness test.
+Second, a plan node is regarded as a leaf if it has no outgoing edge
+in \(E_P\). Every leaf node \(\nu_i\) satisfying
+\(\nu_i.\mathrm{Prog}\neq\mathrm{acc}\) is removed together with its
+incoming edges. This removal may turn its parent nodes into new
+nonaccepting leaves. The same rule is therefore applied repeatedly
+until every remaining leaf satisfies
+\(\nu_i.\mathrm{Prog}=\mathrm{acc}\). Accepting leaves are retained
+because they represent completed prefix--suffix plans.
 \subsection{Plan Extraction}
 \label{subsubsec:plan_extraction}
 % After the plan graph \(G_P\) is constructed, the function
@@ -903,20 +926,22 @@ preserves the accepting corridors retained by the liveness test.
 % chain is not available, the assignments stored in the PlanNodes
 % along \(P\) are used to construct the final executable plan.
 Whenever an accepting prefix-suffix structure is reached during construction, the corresponding
-solution leaf is recorded. Because the plan graph is shared, a node may have multiple structural
-parents. The executable plan, however, is extracted through the representative-predecessor chain.
+solution leaf is recorded. Because plan nodes can be reused, a plan node may have multiple parent
+nodes in $G_P$. The executable plan, however, is extracted through the representative-predecessor chain.
 Starting from a recorded solution leaf $\nu_f$, the algorithm repeatedly follows ${\rm par}(\nu)
 $ until the root node is reached, and then reverses the obtained sequence to form a root-to-leaf
 plan.
 
 For each node on this representative path, the stored assignment map, predicted robot positions, and
 completion times define the executable subtask transition. Thus, the extracted plan is consistent
-with the runtime payload maintained in the shared graph. The structural parent set is used for
-graph sharing and simplification, but it is not enumerated during plan extraction.
+with the robot assignments and predicted execution states stored in the plan graph. The set of parent nodes is used for
+node reuse and graph simplification, but it is not enumerated during plan extraction.
 \section{BRANCH-AND-BOUND OPTIMIZATION}
 
-After the plan graph is constructed and a feasible solution is available, we further refine the solution
-within the generated plan graph using a warm-started branch-and-bound (BnB) method. The objective is to minimize the task completion time, measured by the makespan of all robots, i.e. $\max_{r_k \in \mathcal{R}} ET_k$, where \(ET_k\) is the completion time of robot \(r_k\). The best solution \(J^\star\) is initialized by the feasible solution obtained from the plan graph, and BnB then systematically explores the assignment space to improve. If the search frontier is fully exhausted, the best solution is certified to be optimal within the generated plan-graph assignment space. Otherwise, if the search is terminated early due to runtime or memory limits, the algorithm returns the best feasible solution found so far.
+After the plan graph has been constructed and simplified, the greedy allocation used during its construction provides an initial feasible plan, which is not necessarily optimal. We therefore apply a warm-started branch-and-bound (BnB) search directly to \(G_P\). The search jointly selects a path from the root node \(\nu_0\) to a plan node with \(\mathrm{Prog}=\mathrm{acc}\) and feasible robot assignments for the subtasks along that path. Such a path determines a
+finite plan \(\Pi_{\mathrm{fin}}\) associated with an accepting prefix--suffix run. The objective is to minimize \(J_\varphi\) defined in Eq.~\eqref{objective}. The initial feasible plan initializes the incumbent plan \(\Pi^\star\) and its cost \(J^\star\). When all
+candidates that can improve the incumbent have been examined or pruned, the returned plan has the minimum makespan over the paths and assignments retained in \(G_P\). If the search is stopped by a runtime
+or memory limit, the best incumbent found so far is returned.
 
 
 \begin{algorithm}[t]
@@ -933,7 +958,7 @@ within the generated plan graph using a warm-started branch-and-bound (BnB) meth
         \STATE \textbf{continue}
     \ENDIF
     \IF{$\nu_i$ is an accepting terminal plan node}
-        \IF{$J_{\mathrm{cur}}(\mu_i)<J^\star$}
+        \IF{$J(\mu_i)<J^\star$}
             \STATE Update $(\Pi^\star,J^\star)$ using the plan represented by $\mu_i$.
         \ENDIF
         \STATE \textbf{continue}
@@ -956,14 +981,21 @@ within the generated plan graph using a warm-started branch-and-bound (BnB) meth
 \end{algorithm}
 \subsection{Node Expansion}
 
-Each BnB search node is represented as below.
-\begin{equation}
-    \mu_i = (\nu_i,X_i,\Theta_i, \mathcal{C}_i),
-\end{equation}
-where \(\nu_i\) is the current plan node in the generated plan graph, vector $X_i=(x_i(r_1),x_i(r_2),\ldots,x_i(r_{n_r}))$ denotes the predicted robot positions. The vector $\Theta_i=(\theta_i(r_1),\theta_i(r_2),\ldots,\theta_i(r_{n_r}))$ denotes the predicted completion times of robots, and $\mathcal{C}_i$ is the assignment plan.
+Each BnB search node is represented by
+$$
+\mu_i=(\nu_i,X_i^b,\Theta_i^b,\mathcal C_i^b),
+$$
+where \(\nu_i\) is the associated plan node. The vectors \(X_i^b\)
+and \(\Theta_i^b\) denote the predicted robot positions and completion
+times carried by \(\mu_i\), respectively. The robot assignment
+\(\mathcal C_i^b\) specifies the robots assigned to the required action
+propositions in \(\omega_i\). For the root BnB node,
+\(\mathcal C_0^b=\emptyset\).
 
-The expansion of a BnB node follows the connectivity of the plan graph. For a node $\mu_i=(\nu_i,X_i,\Theta_i,\mathcal C_i)$, only successor plan nodes $\nu_j$ satisfying $(\nu_i,\nu_j)\in E_P $ are considered, where $E_P$ is the edge set of the plan graph. The child node $\mu_j$ of $\mu_i$ is created by assigning the subtask associated with $\nu_j$ to all feasible robot combinations.
-For an assignment plan $\mathcal C_j$ of $\mu_j$, if robot $r_k$ is assigned to an action proposition $a_\ell\in\mathcal A(\omega_j)$, its predicted position $x_j(r_k)\in X_j$ and completion time $\theta_j(r_k)\in\Theta_j$ are computed in the same manner as in Sec.~\ref{gen}. Robots not involved in the subtask inherit their parent states from $X_i$ and $\Theta_i$.
+The expansion of a BnB node follows the edges of the plan graph. Consider a node \(\mu_i=(\nu_i,X_i^b,\Theta_i^b,\mathcal C_i^b)\).
+For each edge \((\nu_i,\nu_j)\in E_P\), the search considers every feasible robot assignment \(\mathcal C_j^b\) for the subtask \(\omega_j\). A feasible assignment satisfies the robot-type, cardinality, disjointness, reachability, and holding-condition constraints.
+For each feasible \(\mathcal C_j^b\), the state-update rules in Sec.~\ref{gen} are applied to \(X_i^b\) and \(\Theta_i^b\), producing \(X_j^b\) and \(\Theta_j^b\). The resulting child node is \(\mu_j=(\nu_j,X_j^b,\Theta_j^b,\mathcal C_j^b)\). Robots not assigned to \(\omega_j\) retain their states from \(X_i^b\)
+and \(\Theta_i^b\). Each child stores \(\mu_i\) as its predecessor in the BnB search tree, allowing the complete assignment sequence to be recovered after an accepting solution is reached.
 
 % \subsection{Branching Rule}
 
@@ -978,61 +1010,45 @@ For an assignment plan $\mathcal C_j$ of $\mu_j$, if robot $r_k$ is assigned to 
 
 \subsection{Lower Bound}
 
-For a BnB node $\mu_i$, the lower bound estimates the smallest possible completion time that can be achieved from $\mu_i$ after completing the remaining subtasks in the generated plan graph
-
-Let $\mathcal A_{\mathrm{rem}}(\nu_i)$ denote the set of action propositions appearing in the remaining subtasks reachable from $\nu_i$. If $\mathcal A_{\mathrm{rem}}(\nu_i)=\emptyset$, then
+For a plan node \(\nu_i\), let \(\mathcal A_{\mathrm{must}}(\nu_i)\subseteq\mathcal A\) denote the
+set of positive action propositions that occur in every  accepting path from \(\nu_i\). 
+For an accepting terminal node, \(\mathcal A_{\mathrm{must}}(\nu_i)=\emptyset\). For every other plan
+node, the set is computed backward as follows:
 \begin{equation}
-LB(\mu_i)=J_{\mathrm{cur}}(\mu_i).
-\end{equation}
-Here, $LB(\mu_i)$ denotes the lower-bound estimate of the final makespan for all feasible continuations rooted at $\mu_i$, and $J_{\mathrm{cur}}(\mu_i)$ denotes the current makespan at $\mu_i$.
-For each action proposition $a\in\mathcal A_{\mathrm{rem}}(\nu_i)$, let $c(a)=(\tau_a,n_a,l_a)$
-be its execution requirement, where $\tau_a$ is the required robot type, $n_a$ is the required number of robots, and $l_a$ is the target region. For each type-compatible robot $r_k\in\mathcal R_{\tau_a}$, we compute the relaxed arrival-time estimate
-\begin{equation}
-\widehat{\theta}_i(r_k,a)
+\mathcal A_{\mathrm{must}}(\nu_i)
 =
-\theta_i(r_k)
-+
-\frac{d_k(x_i(r_k),l_a)}{v(r_k)},
+\bigcap_{(\nu_i,\nu_j)\in E_P}
+\left(
+\mathcal A(\omega_j)
+\cup
+\mathcal A_{\mathrm{must}}(\nu_j)
+\right).
+\label{eq:must_actions}
 \end{equation}
-where $x_i(r_k)\in X_i$ is the predicted position of robot $r_k$, $v(r_k)$ is its constant travel speed, and $d_k(x_i(r_k),l_a)$ denotes its shortest feasible travel distance from $x_i(r_k)$ to $l_a$. Let $\ell_i(a)$ be the $n_a$-th smallest value among
-$\{
-\widehat{\theta}_i(r_k,a)
-\mid
-r_k\in\mathcal R_{\tau_a}\}.$
-If fewer than $n_a$ type-compatible robots can reach $l_a$, then $\ell_i(a)=+\infty$.
+Here, \(\omega_j\) is the subtask stored in the successor plan node \(\nu_j\). Thus, an action is retained only if it is required through every accepting continuation from \(\nu_i\).
 
-The lower bound of $\mu_i$ is then defined as
+For a BnB node \(\mu_i\), its current cost \(J(\mu_i)\) is evaluated from its execution state using the same makespan definition as \(J(\nu_i)\) in Eq.~\eqref{eq:plan-node-cost}.
+
+For each \(a\in\mathcal A_{\mathrm{must}}(\nu_i)\) with
+\(c(a)=(\tau_a,n_a,l_a)\), the arrival times of the compatible robots are computed from the execution state carried by \(\mu_i\), according to Eq.~\eqref{eq:predicted_arrival}. As in the residual-obligation
+score, \(h_a(\mu_i)\) denotes the \(n_a\)-th smallest finite arrival time. If fewer than \(n_a\) compatible robots can reach \(l_a\), then \(h_a(\mu_i)=+\infty\).
+
+The lower bound is defined as
 \begin{equation}
 LB(\mu_i)
 =
 \max
-\{
-J_{\mathrm{cur}}(\mu_i),
-\max_{a\in\mathcal A_{\mathrm{rem}}(\nu_i)}
-\ell_i(a)
-\}.
+\left\{
+J(\mu_i),
+\max_{a\in\mathcal A_{\mathrm{must}}(\nu_i)}
+h_a(\mu_i)
+\right\}.
+\label{eq:bnb_lower_bound}
 \end{equation}
+If \(\mathcal A_{\mathrm{must}}(\nu_i)=\emptyset\), the second term is omitted and \(LB(\mu_i)=J(\mu_i)\).
 
-This bound is obtained by relaxing the remaining assignment problem: it ignores the ordering among future subtasks and the reuse constraints of robots across multiple future subtasks. Therefore, any complete feasible solution rooted at $\mu_i$ must have a final makespan no smaller than $LB(\mu_i)$. If $LB(\mu_i)\geq J^\star$, where $J^\star$ is the incumbent best cost, then $\mu_i$ cannot improve the incumbent solution and is pruned.
-
-
-% For each required proposition \(a \in \mathcal{A}_{\mathrm{rem}}(v)\), with type \(\tau_a\), target region \(\mathcal{X}_a\), and cardinality \(n_a\), the bound considers all type-compatible robots in the current assignment state:
-% \begin{equation}
-%     \mathcal{C}_a(\mu)=\{r_i \in \mathcal{R}\mid \mathrm{type}(r_i)=\tau_a\}.
-% \end{equation}
-% For each candidate robot,
-% \begin{equation}
-%     h_i(a)=ET_i+T(EP_i,\mathcal{X}_a).
-% \end{equation}
-% After sorting these values in nondecreasing order, the relaxed completion estimate of \(a\) is the \(n_a\)-th smallest arrival time,
-% \begin{equation}
-%     \ell(a,\mu)=h_{(n_a)}(a).
-% \end{equation}
-% The node lower bound is
-% \begin{equation}
-%     LB(\mu)=\max\Bigl(g(\mu),\max_{a\in \mathcal{A}_{\mathrm{rem}}(v)} \ell(a,\mu)\Bigr).
-% \end{equation}
-% This relaxation ignores downstream ordering and resource coupling and does not update robot states while evaluating multiple future propositions. If fewer than \(n_a\) type-compatible robots exist, or if no feasible target region exists, the bound is set to \(+\infty\).
+The bound evaluates the unavoidable actions independently and ignores task precedence, inter-task resource coupling, and state changes caused
+by preceding subtasks. It is therefore admissible and can be used for BnB pruning.
 
 \subsection{Upper Bound}
 
@@ -1063,14 +1079,14 @@ Let $n_G$ be the number of GBA states after the inherited LTL2BA simplifications
 
 During NBA generation, the implementation constructs the plan graph on the fly. Each generated NBA transition induces a candidate plan node. If the induced task cannot be assigned to the current robot team, the corresponding branch is discarded. Let $N_P$ denote the number of plan node candidates evaluated during this on-the-fly construction. 
 For one plan node, the main computational complexity comes from node evaluation and greedy assignment.
- If a candidate node contains \(m\) atomic propositions requirements and the \(i\)-th AP is associated with robot type \(\tau_i\), the complexity of greedy assignment part is $O\!\left( m\log m+ \sum_{i=1}^{m} \mathcal{R}({\tau_i})(C_{\mathrm{dist}}+\log \mathcal{R}({\tau_i}) + \mathcal{R})\right), $ where \(C_{\mathrm{dist}}\) is the cost of one distance query and is $O(1)$ when the distance value is cached.  
-Let \(A_s\) be the number of plan anchors currently stored at the target BState, and let \(B\) be the length of the AP bit-set. The complexity of node evaluation is $ O\!\left((A_s+1)B+\sum_{j=1}^{q} \mathcal{R}({\tau_j})(C_{\mathrm{dist}}+\log \mathcal{R}({\tau_j}))\right).$
+ If a candidate node contains \(m\) atomic propositions requirements and the \(i\)-th AP is associated with robot type \(\tau_i\), the complexity of greedy assignment part is $O\!\left( m\log m+ \sum_{i=1}^{m} \lvert\mathcal R_{\tau_i}\rvert(C_{\mathrm{dist}}+\log \lvert\mathcal R_{\tau_i}\rvert + n_r)\right), $ where \(C_{\mathrm{dist}}\) is the cost of one distance query and is $O(1)$ when the distance value is cached.  
+Let \(A_s\) be the number of plan nodes currently stored at the target NBA state, and let \(B\) be the length of the AP bit-set. The complexity of node evaluation is $ O\!\left((A_s+1)B+\sum_{j=1}^{q} \lvert\mathcal R_{\tau_j}\rvert(C_{\mathrm{dist}}+\log \lvert\mathcal R_{\tau_j}\rvert)\right).$
  
 The  bnb stage searches over robot assignments on the generated plan graph. For a plan-graph node $\nu$, suppose that its corresponding subtask contains $m_\nu$ action requirements, where the $i$-th requirement selects $k_i$ robots from $r_i$ compatible candidates. Let $K_\nu=\sum_i k_i$. The assignment branching factor at $\nu$ is bounded by $ M_\nu \leq \prod_{i=1}^{m_\nu} {r_i \choose k_i}.$
-The lower bound calculation first collects future required propositions from the current bnb node and its children, and then estimates the earliest arrival time of the required compatible robots. If \(d_\nu\) is the number of child nodes, \(h_\nu\) is the number of future required propositions collected by this lower-bound routine, and \(B=\lceil |\mathcal{AP}|/w\rceil\) is the AP bit-set length in machine words, then the complexity of lower bound calculation is $ O\!\left((d_\nu+1)B+\sum_{\ell=1}^{h_\nu} \mathcal R({\tau_\ell})(C_{\mathrm{dist}}+\log \mathcal{R}({\tau_\ell}))\right). $  Upper-bound updates follow one heuristic path in the plan graph rather than enumerating all assignments. If the rollout visits \(L_{\mathrm{roll}}\) plan nodes, then the complexity is $ O\!\left( \sum_{t=1}^{L_{\mathrm{roll}}} \left(d_t C_{\mathrm{heur}}(t)+K_t(C_{\mathrm{dist}}+1)+R\right)\right),$
+The lower bound calculation first collects future required propositions from the current bnb node and its children, and then estimates the earliest arrival time of the required compatible robots. If \(d_\nu\) is the number of child nodes, \(h_\nu\) is the number of future required propositions collected by this lower-bound routine, and \(B=\lceil |\mathcal{AP}|/w\rceil\) is the AP bit-set length in machine words, then the complexity of lower bound calculation is $ O\!\left((d_\nu+1)B+\sum_{\ell=1}^{h_\nu} \lvert\mathcal R_{\tau_\ell}\rvert(C_{\mathrm{dist}}+\log \lvert\mathcal R_{\tau_\ell}\rvert)\right). $  Upper-bound updates follow one heuristic path in the plan graph rather than enumerating all assignments. If the rollout visits \(L_{\mathrm{roll}}\) plan nodes, then the complexity is $ O\!\left( \sum_{t=1}^{L_{\mathrm{roll}}} \left(d_t C_{\mathrm{heur}}(t)+K_t(C_{\mathrm{dist}}+1)+R\right)\right),$
 where \(C_{\mathrm{heur}}(t)\) is the cost of scoring one child during rollout. If \(g_t\) required regions are considered by the heuristic, a coarse bound is $C_{\mathrm{heur}}(t)=O\!\left((d_t+1)B+R g_t C_{\mathrm{dist}}\right)$ which accounts for required-region collection and robot-region arrival-time checks.
 
-Overall, the LTL formula complexity and the robot-team size affect different parts of the framework. A more complex formula usually increases the AP set and the automaton branching structure, which is reflected by \(n_G\), \(d_G\), \(B\), \(N_P\), and the plan-graph quantities \(d_\nu\), \(h_\nu\), and \(L_{\mathrm{roll}}\). These terms determine how many automaton transitions, plan-node candidates, and future AP requirements must be examined. In contrast, the number of robots mainly affects the assignment terms. During NBA/plan-graph construction, the greedy evaluation of one candidate grows roughly with \(\sum_i \mathcal{R}({\tau_i})\log \mathcal{R}({\tau_i})\) when distance queries are cached. In the bnb stage, adding compatible robots increases \(r_i\) and therefore the branching factor \(M_\nu=\prod_i {r_i\choose k_i}\). If each \(k_i\) is fixed, this factor grows polynomially with degree \(K_\nu=\sum_i k_i\); if the number of collaborative requirements or interchangeable robots grows, the product becomes combinatorial. Therefore, the dominant cost is jointly controlled by \(N_P\) from the formula/automaton side and by \(M_\nu\), \(N_A\), and \(H\) from the robot-assignment side. The proposed pruning and incumbent updates reduce these effective quantities in practice, but they do not remove the worst-case combinatorial dependence of synchronized multi-robot assignment.
+Overall, the LTL formula complexity and the robot-team size affect different parts of the framework. A more complex formula usually increases the AP set and the automaton branching structure, which is reflected by \(n_G\), \(d_G\), \(B\), \(N_P\), and the plan-graph quantities \(d_\nu\), \(h_\nu\), and \(L_{\mathrm{roll}}\). These terms determine how many automaton transitions, plan-node candidates, and future AP requirements must be examined. In contrast, the number of robots mainly affects the assignment terms. During NBA/plan-graph construction, the greedy evaluation of one candidate grows roughly with \(\sum_i \lvert\mathcal R_{\tau_i}\rvert\log \lvert\mathcal R_{\tau_i}\rvert\) when distance queries are cached. In the bnb stage, adding compatible robots increases \(r_i\) and therefore the branching factor \(M_\nu=\prod_i {r_i\choose k_i}\). If each \(k_i\) is fixed, this factor grows polynomially with degree \(K_\nu=\sum_i k_i\); if the number of collaborative requirements or interchangeable robots grows, the product becomes combinatorial. Therefore, the dominant cost is jointly controlled by \(N_P\) from the formula/automaton side and by \(M_\nu\), \(N_A\), and \(H\) from the robot-assignment side. The proposed pruning and incumbent updates reduce these effective quantities in practice, but they do not remove the worst-case combinatorial dependence of synchronized multi-robot assignment.
 
 
 \section{THEORETICAL ANALYSIS}
@@ -1086,7 +1102,7 @@ The offline optimization removes only unreachable states, states that cannot par
 The on-the-fly plan-graph construction  algorithm is complete, i.e., if a feasible solution exists, the initial algorithm is guaranteed to find it.
 \end{lemma}
 \begin{proof}
-Let \(\Pi_{\varphi}^{\mathrm{fin}}\) be a feasible finite execution in the sense of the problem definition, and let \(q_{B,0}q_{B,1}\cdots q_{B,n}\) be the corresponding finite segment of the accepting NBA run \(\rho_{\varphi}\), where \(q_{B,i}=(q_g^i,\ell_i)\). For each NBA transition \(e_B^i:q_{B,i}\xrightarrow{\sigma_i}q_{B,i+1}\), the on-the-fly construction generates the induced subtask \(T_{i+1}\) and either creates a successor plan node \(\nu_{i+1}\) or reconnects to an equivalent semantic anchor carrying the same \(q_{B,i+1}\), stage, and transition signature.
+Let \(\Pi_{\varphi}^{\mathrm{fin}}\) be a feasible finite execution in the sense of the problem definition, and let \(q_{B,0}q_{B,1}\cdots q_{B,n}\) be the corresponding finite segment of the accepting NBA run \(\rho_{\varphi}\), where \(q_{B,i}=(q_g^i,\ell_i)\). For each NBA transition \(e_B^i:q_{B,i}\xrightarrow{\sigma_{i,i+1}}q_{B,i+1}\), the on-the-fly construction generates the induced subtask \(T_{i+1}\) and either creates a successor plan node \(\nu_{i+1}\) or reconnects to a compatible plan node carrying the same \(q_{B,i+1}\), progress flag, and induced subtask.
 
 The construction discards a successor only when its synchronized subtask is infeasible for the current robot team. Since \(\Pi_{\varphi}^{\mathrm{fin}}\) is feasible, every subtask along this execution admits a valid synchronized assignment and is not removed by this feasibility test. Therefore, the full accepting sequence remains represented in the plan graph, and a feasible initial plan can be obtained.
 \end{proof}

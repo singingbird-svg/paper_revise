@@ -42,7 +42,6 @@
 \citation{liu2024time}
 \@writefile{loa}{\contentsline {algorithm}{\numberline {1}{\ignorespaces On-the-fly Task Allocation framework}}{6}\protected@file@percent }
 \newlabel{alg:framework}{{1}{6}}
-\newlabel{alg:framework}{{1}{6}}
 \@writefile{toc}{\contentsline {section}{\numberline {V}Pruning for GBA}{6}\protected@file@percent }
 \newlabel{subsec:infeasible_gba_pruning}{{\mbox  {V-}1}{6}}
 \@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {V-}1}Infeasible Transition Pruning During GBA Construction}{6}\protected@file@percent }
@@ -51,50 +50,59 @@
 \newlabel{def:progress_consistent_decomposable_transition}{{7}{6}}
 \newlabel{l1}{{1}{6}}
 \newlabel{l2}{{\mbox  {V-}2}{6}}
+\citation{Gastin2001FastLT}
 \newlabel{l3}{{2}{7}}
 \@writefile{toc}{\contentsline {section}{\numberline {VI}On-the-Fly Plan Graph Construction}{7}\protected@file@percent }
 \newlabel{subsec:plan_graph_construction}{{VI}{7}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VI-A}}Plan Graph and Plan Node}{7}\protected@file@percent }
 \newlabel{def:plan_node}{{8}{7}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VI-B}}Construction of Plan Graph}{7}\protected@file@percent }
-\@writefile{loa}{\contentsline {algorithm}{\numberline {2}{\ignorespaces On-the-fly NBA and plan-graph construction}}{8}\protected@file@percent }
+\newlabel{eq:plan-node-cost}{{4}{7}}
+\@writefile{loa}{\contentsline {algorithm}{\numberline {2}{\ignorespaces \textsc  {ConstructPlanGraph}}}{8}\protected@file@percent }
 \newlabel{alg:otf_pg}{{2}{8}}
-\@writefile{loa}{\contentsline {algorithm}{\numberline {3}{\ignorespaces \textsc  {ExtendPlanGraph}: plan-graph extension for an NBA transition}}{8}\protected@file@percent }
+\@writefile{loa}{\contentsline {algorithm}{\numberline {3}{\ignorespaces \textsc  {ExtendPlanGraph}}}{8}\protected@file@percent }
 \newlabel{alg:extend_successor}{{3}{8}}
 \newlabel{gen}{{\mbox  {VI-B}1}{8}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {VI-B}1}Child Node Generation}{8}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {VI-B}2}Residual-Obligation Scoring of B\"uchi State}{9}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VI-C}}Traversal Rules}{9}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VI-D}}Final Post-Construction Pruning}{10}\protected@file@percent }
-\newlabel{subsec:final_pruning}{{\mbox  {VI-D}}{10}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VI-E}}Plan Extraction}{10}\protected@file@percent }
-\newlabel{subsubsec:plan_extraction}{{\mbox  {VI-E}}{10}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {VI-B}1}ExtendPlanGraph}{8}\protected@file@percent }
+\citation{Chen2024RealTimeReactive}
+\newlabel{eq:predicted_arrival}{{5}{9}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {VI-B}2}Reuse of Existing Successors}{9}\protected@file@percent }
+\@writefile{loa}{\contentsline {algorithm}{\numberline {4}{\ignorespaces \textsc  {ReuseSuccessors}}}{9}\protected@file@percent }
+\newlabel{alg:reuse_successors}{{4}{9}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {VI-B}3}Residual-Obligation Scoring of NBA States}{9}\protected@file@percent }
+\newlabel{eq:score}{{8}{10}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VI-C}}Plan-Graph Simplification}{10}\protected@file@percent }
+\newlabel{subsec:final_pruning}{{\mbox  {VI-C}}{10}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VI-D}}Plan Extraction}{10}\protected@file@percent }
+\newlabel{subsubsec:plan_extraction}{{\mbox  {VI-D}}{10}}
 \@writefile{toc}{\contentsline {section}{\numberline {VII}BRANCH-AND-BOUND OPTIMIZATION}{10}\protected@file@percent }
-\@writefile{loa}{\contentsline {algorithm}{\numberline {4}{\ignorespaces Warm-Started BnB on the Generated Plan Graph}}{10}\protected@file@percent }
-\newlabel{alg:bnb}{{4}{10}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VII-A}}Node Expansion}{10}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VII-B}}Lower Bound}{11}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VII-B}}Lower Bound}{10}\protected@file@percent }
+\newlabel{eq:must_actions}{{9}{10}}
+\@writefile{loa}{\contentsline {algorithm}{\numberline {5}{\ignorespaces Warm-Started BnB on the Generated Plan Graph}}{11}\protected@file@percent }
+\newlabel{alg:bnb}{{5}{11}}
+\newlabel{eq:bnb_lower_bound}{{10}{11}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VII-C}}Upper Bound}{11}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VII-D}}Branching and Pruning}{11}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{\numberline {VIII}Plan Adaptation under Agent Failures}{11}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {IX}Complexity Analysis}{11}\protected@file@percent }
-\newlabel{sec:complexity}{{IX}{11}}
+\@writefile{toc}{\contentsline {section}{\numberline {IX}Complexity Analysis}{12}\protected@file@percent }
+\newlabel{sec:complexity}{{IX}{12}}
 \@writefile{toc}{\contentsline {section}{\numberline {X}THEORETICAL ANALYSIS}{12}\protected@file@percent }
 \newlabel{lem:ltl2ba-optimization}{{3}{12}}
 \newlabel{lem:initial-completeness}{{4}{12}}
-\newlabel{lem:bnb-feasibility}{{5}{12}}
-\newlabel{lem:optimality}{{1}{12}}
+\newlabel{lem:bnb-feasibility}{{5}{13}}
+\newlabel{lem:optimality}{{1}{13}}
 \@writefile{toc}{\contentsline {section}{\numberline {XI}NUMERICAL EXPERIMENTS}{13}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces The evolution of the upper bound, lower bound, and optimal value.}}{13}\protected@file@percent }
-\newlabel{bnb}{{2}{13}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {XI-A}}Warm-Started Branch-and-Bound Optimization}{13}\protected@file@percent }
 \newlabel{bnb_exp}{{\mbox  {XI-A}}{13}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {XI-B}}Effect of Planning-Aware Automaton Construction}{13}\protected@file@percent }
 \citation{luo2024decomposition}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces The evolution of the upper bound, lower bound, and optimal value.}}{14}\protected@file@percent }
+\newlabel{bnb}{{2}{14}}
 \@writefile{lot}{\contentsline {table}{\numberline {I}{\ignorespaces Effect of On-the-Fly Planning on First-Solution Time}}{14}\protected@file@percent }
 \newlabel{tab:onthefly_planning}{{I}{14}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {XI-C}}First-Solution Quality}{14}\protected@file@percent }
-\newlabel{eq:quality_formulas}{{13}{14}}
+\newlabel{eq:quality_formulas}{{11}{14}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {XI-D}}Scalability}{14}\protected@file@percent }
 \citation{liu2024time}
 \citation{luo2022temporal}
