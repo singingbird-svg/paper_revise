@@ -13,6 +13,8 @@
 \usepackage{cite}
 \usepackage{multirow}
 \usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage{siunitx}
 \hyphenation{op-tical net-works semi-conduc-tor IEEE-Xplore}
 % updated with editorial comments 8/9/2021
 
@@ -283,7 +285,7 @@ In the factory scenario, an action proposition can represent a region-level oper
 The complete set of atomic propositions used in the temporal logic specification is defined as
 $\mathcal{AP}\triangleq \mathcal{P}\cup\mathcal{A}$.
 
-\begin{example}
+\begin{example}\label{ex:warehouse}
 For example, as shown in Fig.\ref{workspace} consider a large warehouse facility with eight regions of interest, denoted by $\mathcal{L}=\{l_1,l_2,\ldots,l_8\}$. $l_1$ and $l_2$ are inbound receiving and temporary storage areas, $l_3$ and $l_4$ are order-picking and outbound loading areas, $l_5$ and $l_6$ are inspection and equipment-maintenance areas, and $l_7$ and $l_8$ are dispatch areas. The robot team consists of five robots, $\mathcal{R}=\{r_1,r_2,r_3,r_4,r_5\}$, where $r_1,r_2,r_3$ are type-1  robots  and $r_4,r_5$ are type-2 robots. Consider a safety-inspection task $\Diamond\big(a_1 \wedge \Diamond(a_2 \wedge (a_3)\big) \wedge \Box\neg p_8 $.
 Here,  $c(a_1)=(2,2,l_5), c(a_2)=(1,1,l_6)$ and $c(a_3) = (1,1,l_1)$. This formula requires all robots to avoid the restricted dispatch area $l_8$ throughout execution. It also requires two type-2  robots to first perform a collaborative safety inspection at $l_5$, after which one type-1  robot checks the equipment-maintenance area $l_6$ and another type-1 robot inspects the inbound receiving area $l_1$.
 \end{example}
@@ -860,13 +862,8 @@ batch, the smallest candidate score is retained for ordering that successor in t
 \subsection{Plan-Graph Simplification}
 \label{subsec:final_pruning}
 
-After the plan graph has been constructed, nodes and edges that cannot
-contribute to an accepting plan are removed through two simplification
-steps.
-First, the simplification starts from the root node \(\nu_0\) and
-follows the outgoing edges in \(E_P\). Each reached plan node is
-marked and retained. After all reachable nodes have been identified,
-every unmarked plan node is removed together with its incident edges.
+After the plan graph has been constructed, nodes and edges that cannot contribute to an accepting plan are removed through two simplification steps.
+First, the simplification retains only the plan nodes that are both reachable from the root node \(\nu_0\) and capable of reaching a plan node with \(\mathrm{Prog}=\mathrm{acc}\). These nodes are identified by combining forward reachability from \(\nu_0\) along the outgoing edges in \(E_P\) with backward reachability from all nodes with \(\mathrm{Prog}=\mathrm{acc}\) along the incoming edges. All other plan nodes are removed together with their incident edges. An edge is retained only if both of its endpoint nodes are retained.
 
 Second, a plan node is regarded as a leaf if it has no outgoing edge
 in \(E_P\). Every leaf node \(\nu_i\) satisfying
@@ -876,6 +873,15 @@ nonaccepting leaves. The same rule is therefore applied repeatedly
 until every remaining leaf satisfies
 \(\nu_i.\mathrm{Prog}=\mathrm{acc}\). Accepting leaves are retained
 because they represent completed prefix--suffix plans.
+
+\begin{lemma}\label{lem:plan-graph-simplification}
+Plan-graph simplification preserves every feasible accepting plan represented in \(G_P\).
+\end{lemma}
+\begin{proof}
+Every feasible accepting plan in \(G_P\) corresponds to a path from the root node \(\nu_0\) to a plan node with
+\(\mathrm{Prog}=\mathrm{acc}\). Every node on this path is reachable from \(\nu_0\) and can reach the accepting node.  Moreover, the final node is accepting, while every preceding node has an outgoing edge along the path. Therefore, the removal of nonaccepting leaf nodes does not affect this path. The feasible accepting plan is
+thus preserved after simplification.
+\end{proof}
 \subsection{Plan Extraction}
 \label{subsubsec:plan_extraction}
 % After the plan graph \(G_P\) is constructed, the function
@@ -950,28 +956,34 @@ or memory limit, the best incumbent found so far is returned.
 \begin{algorithmic}[1]
 \REQUIRE Plan graph $G_P=(V_P,E_P)$, incumbent plan $\Pi^\star$, incumbent cost $J^\star$.
 \ENSURE Improved plan $\Pi^\star$ and cost $J^\star$.
-\STATE Initialize the root BnB node $\mu_0=(\nu_0,X_0,\Theta_0,C_\emptyset)$.
-\STATE Insert $\mu_0$ into a priority queue $\mathcal{Q}$ with key $\mathrm{LB}(\mu_0)$.
+\STATE Set $X_0^b\gets X_0$, $\Theta_0^b\gets\Theta_0$, and
+$\mathcal C_0^b\gets\emptyset$.
+\STATE Initialize the root BnB node
+$\mu_0=(\nu_0,X_0^b,\Theta_0^b,\mathcal C_0^b)$.
+\STATE Insert $\mu_0$ into a priority queue $\mathcal{Q}$ with key $LB(\mu_0)$.
 \WHILE{$\mathcal{Q}\neq\emptyset$ and the stopping limit is not reached}
-    \STATE Pop $\mu_i=(\nu_i,X_i,\Theta_i,C_i)$ with the smallest lower bound from $\mathcal{Q}$.
-    \IF{$\mathrm{LB}(\mu_i)\ge J^\star$}
-        \STATE \textbf{continue}
+    \STATE Pop $\mu_i=(\nu_i,X_i^b,\Theta_i^b,\mathcal C_i^b)$ with the
+    smallest lower bound from $\mathcal{Q}$.
+    \IF{$LB(\mu_i)\ge J^\star$}
+        \STATE \textbf{break}
     \ENDIF
-    \IF{$\nu_i$ is an accepting terminal plan node}
+    \IF{$\nu_i.\mathrm{Prog}=\mathrm{acc}$}
         \IF{$J(\mu_i)<J^\star$}
-            \STATE Update $(\Pi^\star,J^\star)$ using the plan represented by $\mu_i$.
+            \STATE Recover the plan through the BnB predecessor chain and
+            update $(\Pi^\star,J^\star)$.
         \ENDIF
         \STATE \textbf{continue}
     \ENDIF
     \FORALL{$\nu_j$ such that $(\nu_i,\nu_j)\in E_P$}
-        \FORALL{feasible assignments $C_j$ for the subtask associated with $\nu_j$}
-            \STATE Propagate robot positions and completion times to obtain
-            \[
-            \mu_j=(\nu_j,X_j,\Theta_j,C_i\cup C_j).
-            \]
-            \IF{$\mathrm{LB}(\mu_j)<J^\star$}
-                \STATE Insert $\mu_j$ into $\mathcal{Q}$ with key $\mathrm{LB}(\mu_j)$.
-                \STATE Use a greedy rollout from $\mu_j$ to update $(\Pi^\star,J^\star)$ if a better feasible completion is found.
+        \FORALL{feasible robot assignments $\mathcal C_j^b$ for $\omega_j$}
+            \STATE Propagate $X_i^b$ and $\Theta_i^b$ to obtain $X_j^b$
+            and $\Theta_j^b$.
+            \STATE Create $\mu_j=(\nu_j,X_j^b,\Theta_j^b,\mathcal C_j^b)$
+            and store $\mu_i$ as its BnB predecessor.
+            \IF{$LB(\mu_j)<J^\star$}
+                \STATE Insert $\mu_j$ into $\mathcal{Q}$ with key $LB(\mu_j)$.
+                \STATE Use a greedy rollout from $\mu_j$ to update
+                $(\Pi^\star,J^\star)$ if a better feasible plan is found.
             \ENDIF
         \ENDFOR
     \ENDFOR
@@ -995,7 +1007,7 @@ propositions in \(\omega_i\). For the root BnB node,
 The expansion of a BnB node follows the edges of the plan graph. Consider a node \(\mu_i=(\nu_i,X_i^b,\Theta_i^b,\mathcal C_i^b)\).
 For each edge \((\nu_i,\nu_j)\in E_P\), the search considers every feasible robot assignment \(\mathcal C_j^b\) for the subtask \(\omega_j\). A feasible assignment satisfies the robot-type, cardinality, disjointness, reachability, and holding-condition constraints.
 For each feasible \(\mathcal C_j^b\), the state-update rules in Sec.~\ref{gen} are applied to \(X_i^b\) and \(\Theta_i^b\), producing \(X_j^b\) and \(\Theta_j^b\). The resulting child node is \(\mu_j=(\nu_j,X_j^b,\Theta_j^b,\mathcal C_j^b)\). Robots not assigned to \(\omega_j\) retain their states from \(X_i^b\)
-and \(\Theta_i^b\). Each child stores \(\mu_i\) as its predecessor in the BnB search tree, allowing the complete assignment sequence to be recovered after an accepting solution is reached.
+and \(\Theta_i^b\). Each child stores \(\mu_i\) as its predecessor in the BnB search tree, allowing the complete assignment sequence to be recovered when a plan node with \(\mathrm{Prog}=\mathrm{acc}\) is reached.
 
 % \subsection{Branching Rule}
 
@@ -1013,7 +1025,7 @@ and \(\Theta_i^b\). Each child stores \(\mu_i\) as its predecessor in the BnB se
 For a plan node \(\nu_i\), let \(\mathcal A_{\mathrm{must}}(\nu_i)\subseteq\mathcal A\) denote the
 set of positive action propositions that occur in every  accepting path from \(\nu_i\). 
 For an accepting terminal node, \(\mathcal A_{\mathrm{must}}(\nu_i)=\emptyset\). For every other plan
-node, the set is computed backward as follows:
+node, the set is computed backward as follows.
 \begin{equation}
 \mathcal A_{\mathrm{must}}(\nu_i)
 =
@@ -1026,14 +1038,15 @@ node, the set is computed backward as follows:
 \label{eq:must_actions}
 \end{equation}
 Here, \(\omega_j\) is the subtask stored in the successor plan node \(\nu_j\). Thus, an action is retained only if it is required through every accepting continuation from \(\nu_i\).
+The sets \(\mathcal A_{\mathrm{must}}(\nu_i)\) are computed once from
+the simplified plan graph before the BnB search and reused throughout
+the search.
 
 For a BnB node \(\mu_i\), its current cost \(J(\mu_i)\) is evaluated from its execution state using the same makespan definition as \(J(\nu_i)\) in Eq.~\eqref{eq:plan-node-cost}.
-
 For each \(a\in\mathcal A_{\mathrm{must}}(\nu_i)\) with
 \(c(a)=(\tau_a,n_a,l_a)\), the arrival times of the compatible robots are computed from the execution state carried by \(\mu_i\), according to Eq.~\eqref{eq:predicted_arrival}. As in the residual-obligation
 score, \(h_a(\mu_i)\) denotes the \(n_a\)-th smallest finite arrival time. If fewer than \(n_a\) compatible robots can reach \(l_a\), then \(h_a(\mu_i)=+\infty\).
-
-The lower bound is defined as
+The lower bound is defined as below.
 \begin{equation}
 LB(\mu_i)
 =
@@ -1047,21 +1060,79 @@ h_a(\mu_i)
 \end{equation}
 If \(\mathcal A_{\mathrm{must}}(\nu_i)=\emptyset\), the second term is omitted and \(LB(\mu_i)=J(\mu_i)\).
 
-The bound evaluates the unavoidable actions independently and ignores task precedence, inter-task resource coupling, and state changes caused
-by preceding subtasks. It is therefore admissible and can be used for BnB pruning.
+% The bound evaluates the unavoidable actions independently and ignores task precedence, inter-task resource coupling, and state changes caused
+% by preceding subtasks. It is therefore admissible and can be used for BnB pruning.
 
 \subsection{Upper Bound}
 
-After a child BnB node is generated, BnB attempts a greedy rollout from it to obtain a feasible complete solution and tighten the best upper bound. A plan node may have multiple successor plan nodes. Performing a complete rollout for every successor would introduce considerable computational overhead and would weaken the lightweight nature of the upper-bound estimation. Therefore, at each rollout step, only one promising successor is selected according to a fast residual-task estimate. 
+After a child BnB node is generated, a greedy rollout is performed
+from that node to construct a feasible completion and possibly improve
+the incumbent. At each rollout step, the next plan node is selected
+using the robot demand of its immediate subtask and the actions that
+remain mandatory.
 
-Specifically, for the current rollout node $\mu_i$, the algorithm considers the successor plan nodes $\mu_j$. For each candidate successor, the subtask associated with $\mu_j$ is greedily assigned to a feasible robot combination, resulting in a temporary child node $\mu_j$. The candidate is then evaluated using the remaining action propositions reachable from $\mu_j$. The successor with the smallest estimated completion pressure is selected for the rollout, i.e., $ \nu_j^\star\in\arg\min_{(\nu_i,\nu_j)\in E_P}\widehat J(\mu_j),$ where $\widehat J(\mu_j)$ is computed in the same manner as the residual action-proposition estimate used in the lower-bound calculation. This selection rule favors the successor whose remaining subtasks are estimated to be completed with the smallest makespan, without enumerating all suffix continuations in the plan graph.
+Resource-aware selection rules have been used in branch-and-bound
+methods for resource-constrained project scheduling
+\cite{Brucker1998RCPSP}. Priority-rule heuristics have also been used
+to construct feasible upper-bound solutions efficiently
+\cite{Liu2023BnB}. Following this idea, we compare the robot demand of
+each immediate subtask with the mandatory demand of its continuation.
 
-The rollout then proceeds from $\mu_j^\star$ and repeats the same successor-selection and greedy-assignment procedure until a terminal accepting plan node is reached or the rollout fails. A rollout is accepted only if it reaches a terminal accepting plan node and all synchronized assignments along the rollout are valid. When a valid rollout produces a makespan $J_{\mathrm{roll}}<J^\star$, the best solution is updated as $ J^\star \leftarrow J_{\mathrm{roll}}, $
-together with the corresponding assignment plan and plan-node path. The rollout is used only to improve the incumbent upper bound and does not certify optimality.
+Consider a current BnB node \(\mu_i\) and a successor plan node
+\(\nu_j\) satisfying \((\nu_i,\nu_j)\in E_P\). The normalized robot
+demand of its immediate subtask is defined as
+\begin{equation}
+ D(\omega_j)
+ =
+ \sum_{a\in\mathcal A(\omega_j)}
+ \frac{n_a}{|\mathcal R_{\tau_a}|}.
+\end{equation}
+The total normalized demand associated with selecting \(\nu_j\) is
+defined as
+\begin{equation}
+ W(\nu_j)
+ =
+ \sum_{a\in\mathcal A(\omega_j)\cup
+ \mathcal A_{\mathrm{must}}(\nu_j)}
+ \frac{n_a}{|\mathcal R_{\tau_a}|}.
+\end{equation}
+The priority key of \(\nu_j\) is $ K(\nu_j)=\bigl(W(\nu_j),-D(\omega_j)\bigr).$
+The successor with the lexicographically smallest \(K(\nu_j)\) is
+selected. Dividing \(n_a\) by \(|\mathcal R_{\tau_a}|\) measures the
+proportion of the available robots required by \(a\), allowing
+requirements for different robot types to be compared. The first
+component favors a continuation with less mandatory robot demand. If
+several successors have the same value of \(W(\nu_j)\), the second
+component gives priority to the immediate subtask with the greater
+normalized demand \(D(\omega_j)\). Any remaining tie is resolved by
+generation order.
+
+A greedy robot assignment is computed only for the selected
+successor. If the assignment succeeds, the resulting child BnB node
+becomes the current node and the procedure is repeated. If it fails,
+the rollout terminates without updating the incumbent. When a node
+with \(\mathrm{Prog}=\mathrm{acc}\) is reached, the resulting feasible
+plan updates \((\Pi^\star,J^\star)\) if its cost is smaller than
+\(J^\star\). This priority rule guides only the rollout and is not used
+for BnB pruning.
 
 
 \subsection{Branching and Pruning}
-The search maintains an open list in a best-first manner. Each generated BnB node is ranked according to the lower-bound estimate, which estimates the smallest possible final makespan that can be achieved by completing the remaining subtasks from the current node. Specifically, for a generated node $\mu_j$, let $\underline{J}(\mu_j)$ denote this estimated lower bound. The open list prioritizes the node with the smallest $\underline{J}(\mu_j)$, so that the most promising partial assignment plan is expanded first.  If $\underline{J}(\mu_i)\geq J^\star)$, the node cannot improve the best solution and is pruned.  If the type or cardinality requirement of a remaining subtask cannot be satisfied, the node is removed as infeasible. Otherwise, it is inserted into the open list for further exploration.
+The priority queue \(\mathcal Q\) stores the BnB nodes that have been
+generated but not yet expanded. These nodes are ordered by
+nondecreasing values of \(LB\). At each iteration, the node with the
+smallest lower bound is removed from \(\mathcal Q\) and expanded. A
+node \(\mu_i\) is pruned if \(LB(\mu_i)\geq J^\star\), because it
+cannot improve the incumbent plan. If no feasible robot assignment
+exists for a successor subtask, the corresponding child node is not
+generated.
+
+The search terminates when \(\mathcal Q\) is empty or when its smallest
+lower bound is no smaller than \(J^\star\). In either case, the
+incumbent has the minimum cost over the paths and robot assignments
+retained in \(G_P\). If a prescribed runtime or memory limit is reached
+before either condition holds, the search returns the best incumbent
+found so far.
 
 \section{Plan Adaptation under Agent Failures}
 During task execution, a robot may become unavailable because of an unexpected failure and can no longer complete its assigned subtasks. The unfinished part of the mission must therefore be replanned using the remaining robot team.
@@ -1073,88 +1144,132 @@ planner to obtain the first adapted solution quickly. The solution then serves a
 \section{Complexity Analysis}
 \label{sec:complexity}
 
-This section analyzes the computational complexity of the proposed framework by decomposing it into three  stages:  GBA construction with  pruning, on-the-fly NBA and plan-graph construction, and the final BnB assignment search.
+This section analyzes the computational cost of the proposed framework in three stages: GBA-level pruning, on-the-fly plan-graph
+construction, and BnB optimization over the generated plan graph.
 
-Let $n_G$ be the number of GBA states after the inherited LTL2BA simplifications, and let $d_G$ be the maximum GBA out-degree. The proposed ST pruning checks whether a direct transition can be replaced by a two-hop transition while preserving the corresponding acceptance progress. Its additional worst-case cost is $O(n_G d_G^3).$  Let $C_s$ candidate transition labels are generated at a GBA state $s$, and $T_f$ denotes the cost of one feasibility check, the feasibility screening cost is $O(\sum_{s\in S_G} C_s T_f)$.
+Let \(n_G=|Q_g|\), let \(d_G\) be the maximum GBA out-degree, and recall that \(m_g=|\mathcal F_g|\). The feasibility screening is linear in the total number of action requirements contained in the candidate GBA transitions. After the progress updates are computed for
+all GBA transitions, the progress-consistent decomposable-transition pruning has complexity
+\(O(|\rightarrow_g|m_g+n_Gd_G^3(|\mathcal{AP}|+m_g))\).
 
-During NBA generation, the implementation constructs the plan graph on the fly. Each generated NBA transition induces a candidate plan node. If the induced task cannot be assigned to the current robot team, the corresponding branch is discarded. Let $N_P$ denote the number of plan node candidates evaluated during this on-the-fly construction. 
-For one plan node, the main computational complexity comes from node evaluation and greedy assignment.
- If a candidate node contains \(m\) atomic propositions requirements and the \(i\)-th AP is associated with robot type \(\tau_i\), the complexity of greedy assignment part is $O\!\left( m\log m+ \sum_{i=1}^{m} \lvert\mathcal R_{\tau_i}\rvert(C_{\mathrm{dist}}+\log \lvert\mathcal R_{\tau_i}\rvert + n_r)\right), $ where \(C_{\mathrm{dist}}\) is the cost of one distance query and is $O(1)$ when the distance value is cached.  
-Let \(A_s\) be the number of plan nodes currently stored at the target NBA state, and let \(B\) be the length of the AP bit-set. The complexity of node evaluation is $ O\!\left((A_s+1)B+\sum_{j=1}^{q} \lvert\mathcal R_{\tau_j}\rvert(C_{\mathrm{dist}}+\log \lvert\mathcal R_{\tau_j}\rvert)\right).$
+The cost of constructing the plan graph mainly comes from generating
+and updating plan nodes. For each parent plan node \(\nu_i\) and
+induced subtask \(\omega_{ij}\), greedy allocation requires
+\(O(\sum_{a\in\mathcal A(\omega_{ij})}
+|\mathcal R_{\tau_a}|\log|\mathcal R_{\tau_a}|+n_r)\) time when the
+eligible robots are sorted by predicted arrival time and travel
+distances are cached. The score uses the same arrival-time calculation
+for the actions in \(\mathcal M_j\). After a feasible assignment is
+obtained, a direct search for an existing plan node costs
+\(O(|V_P|)\), and ordering the corresponding successor states costs
+\(O(|\mathcal P_B|\log|\mathcal P_B|)\). Existing successor plan nodes
+are reused whenever possible. If a stored execution state is improved,
+the update is passed to its descendants, with a cost determined by the
+affected edges. Finally, plan-graph simplification costs
+\(O(|V_P|+|E_P|)\).
  
-The  bnb stage searches over robot assignments on the generated plan graph. For a plan-graph node $\nu$, suppose that its corresponding subtask contains $m_\nu$ action requirements, where the $i$-th requirement selects $k_i$ robots from $r_i$ compatible candidates. Let $K_\nu=\sum_i k_i$. The assignment branching factor at $\nu$ is bounded by $ M_\nu \leq \prod_{i=1}^{m_\nu} {r_i \choose k_i}.$
-The lower bound calculation first collects future required propositions from the current bnb node and its children, and then estimates the earliest arrival time of the required compatible robots. If \(d_\nu\) is the number of child nodes, \(h_\nu\) is the number of future required propositions collected by this lower-bound routine, and \(B=\lceil |\mathcal{AP}|/w\rceil\) is the AP bit-set length in machine words, then the complexity of lower bound calculation is $ O\!\left((d_\nu+1)B+\sum_{\ell=1}^{h_\nu} \lvert\mathcal R_{\tau_\ell}\rvert(C_{\mathrm{dist}}+\log \lvert\mathcal R_{\tau_\ell}\rvert)\right). $  Upper-bound updates follow one heuristic path in the plan graph rather than enumerating all assignments. If the rollout visits \(L_{\mathrm{roll}}\) plan nodes, then the complexity is $ O\!\left( \sum_{t=1}^{L_{\mathrm{roll}}} \left(d_t C_{\mathrm{heur}}(t)+K_t(C_{\mathrm{dist}}+1)+R\right)\right),$
-where \(C_{\mathrm{heur}}(t)\) is the cost of scoring one child during rollout. If \(g_t\) required regions are considered by the heuristic, a coarse bound is $C_{\mathrm{heur}}(t)=O\!\left((d_t+1)B+R g_t C_{\mathrm{dist}}\right)$ which accounts for required-region collection and robot-region arrival-time checks.
+The BnB search follows the edges in \(E_P\) and considers all feasible
+robot assignments for each subtask. For an edge
+\((\nu_i,\nu_j)\in E_P\), at most
+\(\prod_{a\in\mathcal A(\omega_j)}
+\binom{|\mathcal R_{\tau_a}|}{n_a}\) assignments are considered.
+Because these choices combine at successive plan nodes, the search
+time is exponential in the worst case. All sets
+\(\mathcal A_{\mathrm{must}}(\nu_i)\) are computed once in
+\(O(|\mathcal A|(|V_P|+|E_P|))\) time and then reused. The rollout
+selects an assignment greedily at each step and does not enumerate all
+possible combinations. Each insertion into or removal from
+\(\mathcal Q\) costs \(O(\log|\mathcal Q|)\).
 
-Overall, the LTL formula complexity and the robot-team size affect different parts of the framework. A more complex formula usually increases the AP set and the automaton branching structure, which is reflected by \(n_G\), \(d_G\), \(B\), \(N_P\), and the plan-graph quantities \(d_\nu\), \(h_\nu\), and \(L_{\mathrm{roll}}\). These terms determine how many automaton transitions, plan-node candidates, and future AP requirements must be examined. In contrast, the number of robots mainly affects the assignment terms. During NBA/plan-graph construction, the greedy evaluation of one candidate grows roughly with \(\sum_i \lvert\mathcal R_{\tau_i}\rvert\log \lvert\mathcal R_{\tau_i}\rvert\) when distance queries are cached. In the bnb stage, adding compatible robots increases \(r_i\) and therefore the branching factor \(M_\nu=\prod_i {r_i\choose k_i}\). If each \(k_i\) is fixed, this factor grows polynomially with degree \(K_\nu=\sum_i k_i\); if the number of collaborative requirements or interchangeable robots grows, the product becomes combinatorial. Therefore, the dominant cost is jointly controlled by \(N_P\) from the formula/automaton side and by \(M_\nu\), \(N_A\), and \(H\) from the robot-assignment side. The proposed pruning and incumbent updates reduce these effective quantities in practice, but they do not remove the worst-case combinatorial dependence of synchronized multi-robot assignment.
+Task complexity can cause the generated automaton to grow
+exponentially with \(|\varphi|\). For the resulting GBA, the pruning
+cost is linear in \(n_G\) and cubic in \(d_G\). With a fixed subtask
+structure, greedy allocation costs approximately \(O(n_r\log n_r)\)
+per extension, whereas the BnB branching factor is bounded by
+\(\prod_i\binom{r_i}{k_i}\). Although these worst-case trends remain,
+GBA-level pruning reduces the transitions propagated to planning,
+score-guided joint construction obtains a feasible plan early, and
+plan-graph reuse avoids repeated successor generation. The initial
+plan also provides an incumbent for pruning the subsequent BnB search.
 
 
 \section{THEORETICAL ANALYSIS}
 
-\begin{lemma}\label{lem:ltl2ba-optimization}
-The offline NBA optimization inherited from LTL2BA preserves feasible solutions.
-\end{lemma}
-\begin{proof}
-The offline optimization removes only unreachable states, states that cannot participate in an accepting run, or transitions that are redundant under the standard language-preserving LTL2BA simplifications. Such elements cannot be part of a feasible accepting run. Therefore, any feasible solution before the offline optimization has an equivalent accepting run after the optimization.
-\end{proof}
 
 \begin{lemma}\label{lem:initial-completeness}
-The on-the-fly plan-graph construction  algorithm is complete, i.e., if a feasible solution exists, the initial algorithm is guaranteed to find it.
+The on-the-fly plan-graph construction is sound and complete,  i.e., if a feasible solution exists, the initial algorithm is able to find a solution and the solution satisfies $\varphi$.
 \end{lemma}
 \begin{proof}
-Let \(\Pi_{\varphi}^{\mathrm{fin}}\) be a feasible finite execution in the sense of the problem definition, and let \(q_{B,0}q_{B,1}\cdots q_{B,n}\) be the corresponding finite segment of the accepting NBA run \(\rho_{\varphi}\), where \(q_{B,i}=(q_g^i,\ell_i)\). For each NBA transition \(e_B^i:q_{B,i}\xrightarrow{\sigma_{i,i+1}}q_{B,i+1}\), the on-the-fly construction generates the induced subtask \(T_{i+1}\) and either creates a successor plan node \(\nu_{i+1}\) or reconnects to a compatible plan node carrying the same \(q_{B,i+1}\), progress flag, and induced subtask.
+Suppose that a feasible plan exists. By Lemma~\ref{l3}, an equivalent feasible accepting run is preserved after GBA pruning.  During the joint construction of the NBA and the plan graph, every transition along the corresponding finite prefix--suffix run is eventually considered. Since the run represents a feasible plan, the subtask induced by each transition admits a valid robot assignment. The construction therefore creates a successor plan node or connects the current node to an existing successor structure. Repeating this argument along the run produces a plan node with \(\mathrm{Prog}=\mathrm{acc}\). By Lemma~\ref{lem:plan-graph-simplification}, the corresponding path is preserved after plan-graph simplification. Hence, the construction returns a plan whenever a feasible one exists.
 
-The construction discards a successor only when its synchronized subtask is infeasible for the current robot team. Since \(\Pi_{\varphi}^{\mathrm{fin}}\) is feasible, every subtask along this execution admits a valid synchronized assignment and is not removed by this feasibility test. Therefore, the full accepting sequence remains represented in the plan graph, and a feasible initial plan can be obtained.
+Conversely, every returned plan is extracted from a plan node \(\nu_f\) satisfying \(\nu_f.\mathrm{Prog}=\mathrm{acc}\). Tracing the representative predecessors from \(\nu_f\) to \(\nu_0\) produces a sequence of feasible plan-graph extensions. Each extension corresponds to an NBA transition and contains a valid robot assignment for its induced subtask. The resulting NBA-state sequence forms an accepting prefix--suffix run. Its induced word is therefore accepted by \(\mathcal B_\varphi\) and satisfies \(\varphi\). Thus, every plan returned by the construction is feasible and satisfies
+\(\varphi\).
 \end{proof}
 
-\begin{lemma}\label{lem:bnb-feasibility}
-Every solution returned by the branch-and-bound search satisfies the constraints of the plan graph.
-\end{lemma}
-\begin{proof}
-The branch-and-bound search is initialized from nodes in the generated plan graph and expands states only along plan-graph edges. For each synchronized task, the assignment enumerator selects the required number of distinct robots from the compatible robot set and updates their positions, execution times, and task records accordingly. The rollout procedure also follows plan-graph edges and replays stored feasible assignments. Thus every returned solution corresponds to a valid path in the plan graph and satisfies both the automaton constraints and the robot-assignment constraints. 
-\end{proof}
+
 
 \begin{theorem} \label{lem:optimality}
-Given sufficient time, if a feasible execution exists, the proposed algorithm obtains a feasible solution and eventually returns one that minimizes the completion time.
+The proposed algorithm is sound and complete.
 \end{theorem}
 \begin{proof}
-Let \(\mathcal{F}\) be the set of feasible finite executions that satisfy \(\varphi\) and all robot-assignment constraints, and let $ T^\star=\min_{\Pi\in\mathcal{F}} T(\Pi).$
-First, suppose \(\mathcal{F}\neq\emptyset\). By Lemmas~\ref{lem:pruning-completeness}--\ref{lem:initial-completeness}, automaton pruning and on-the-fly plan-graph construction preserve at least one feasible accepting execution. The branch-and-bound stage expands only plan-graph edges and enumerates compatible robot assignments. Hence, with sufficient time, it reaches a terminal accepting plan or obtains one through rollout, and records a finite incumbent cost \(J^\star\). Therefore, whenever a feasible solution exists, the algorithm can obtain one.
-
-It remains to show optimality with respect to completion time. Assume that the plan graph representing feasible prefix--suffix executions is finite and that the lower bound \(LB(\nu)\) used by branch-and-bound is admissible, i.e., it never exceeds the minimum feasible completion time of any plan extending node \(\nu\). Let \(\Pi^\star\in\mathcal{F}\) be an execution with completion time \(T^\star\). For every node \(\nu\) on the branch leading to \(\Pi^\star\), admissibility gives \(LB(\nu)\leq T^\star\). If the current incumbent satisfies \(J^\star>T^\star\), then such a node cannot be pruned by the rule \(LB(\nu)\geq J^\star\). If \(J^\star=T^\star\), an execution with minimum completion time has already been found.
-
-Thus, before the optimum is found, the branch leading to \(\Pi^\star\) remains in the search frontier. Given sufficient time, branch-and-bound eventually explores this branch and updates the incumbent to \(J^\star=T^\star\). Once the smallest frontier lower bound is no smaller than \(J^\star\), no unexplored branch can yield a completion time below \(T^\star\). Consequently, the returned solution minimizes \(T(\Pi_{\varphi}^{\mathrm{fin}})\).
+By Lemma~\ref{l3}, GBA pruning preserves the existence of a feasible
+solution. Lemma~\ref{lem:initial-completeness} further shows that the task
+allocation obtained from the plan graph induces a feasible plan
+satisfying \(\varphi\).
+During BnB optimization, every child follows an edge in \(E_P\) and is
+generated using a feasible robot assignment for the corresponding
+subtask. The rollout follows the same plan-graph structure and
+constructs a feasible assignment at every step. Moreover, the
+incumbent is updated only after reaching a plan node with
+\(\mathrm{Prog}=\mathrm{acc}\). Hence, every updated incumbent
+corresponds to an accepting prefix--suffix run and satisfies
+\(\varphi\). If no improved plan is found, the initial feasible
+incumbent is retained. Therefore, the complete algorithm returns a
+feasible plan whenever one exists, and every plan it returns satisfies
+\(\varphi\).
 \end{proof}
 % \IEEEPARstart{T}{his} file is intended to serve as a ``sample article file''
 % for IEEE journal papers produced under \LaTeX\ using
 % IEEEtran.cls version 1.8b and later. The most common elements are covered in the simplified and updated instructions in ``New\_IEEEtran\_how-to.pdf''. For less common elements you can refer back to the original ``IEEEtran\_HOWTO.pdf''. It is assumed that the reader has a basic working knowledge of \LaTeX. Those who are new to \LaTeX \ are encouraged to read Tobias Oetiker's ``The Not So Short Introduction to \LaTeX ,'' available at: \url{http://tug.ctan.org/info/lshort/english/lshort.pdf} which provides an overview of working with \LaTeX.
 
 \section{NUMERICAL EXPERIMENTS}
-This section evaluates the proposed framework through six case studies: (i) we evaluate the performance of the warm-started branch-and-bound (BnB) optimizer to examine whether the initial feasible solution can be progressively improved; ii) we study the effect of incorporating planning information during automaton generation and show that planning-aware pruning and on-the-fly construction help obtain the first feasible solution more quickly; iii) we compare the first feasible solution returned by the proposed method with the optimized solution to examine the quality of the initial plan; iv) we vary the number of robots to evaluate the scalability of the proposed framework; v) we compare our method with poset- and MILP-based methods to evaluate its performance across different LTL specifications and robot-team sizes.; vi) we test the framework in robot-unavailability scenarios and demonstrate its ability to repair the remaining mission online during execution. 
+In this section, we present five numerical experiments, implemented in Cython 0.29.24 on a workstation with a 3.40-GHz Intel Core i7-11390H CPU and 16 GB RAM. The numerical experiments use the \(40\,\mathrm{m}\times40\,\mathrm{m}\) warehouse setting introduced in Example~\ref{ex:warehouse} and shown in Fig.~\ref{workspace}, where heterogeneous robots perform region-level operations under temporal and collaboration constraints. Obstacles are randomly generated within the workspace.
+First, we analyze the BnB algorithm using a numerical example, focusing on the evolution of the search bounds, the pruning ratio, and the improvement in solution cost. Second, we conduct an ablation study with two variants to examine the effects of GBA-level pruning and task
+allocation during NBA generation on the time to the first feasible plan. Third, we compare the first feasible plan with the best plan found in the generated plan graph for four LTL specifications to evaluate the quality of the initial solution. Fourth, we compare our
+method with the poset- and MILP-based methods in \cite{liu2024time,luo2022temporal} under different LTL specifications and robot-team sizes to evaluate scalability. Finally, we introduce robot-unavailability events during task
+execution to examine whether the unfinished task can be rapidly reassigned to the remaining robot team.
 
-All algorithms were implemented in Cython 0.29.24 and executed on a workstation with 3.40-GHz Gen Intel(R) Core(TM) i7-11390H and 16 GB RAM. All experiments are conducted in a $(40\mathrm{m}\times 40\mathrm{m}) $ workspace consisting of eight areas of interest, with obstacles randomly generated in the workspace, as shown in Fig. \ref{workspace}.
-Unless otherwise stated, each reported runtime is measured from the submission of the LTL formula to the
-generation of the corresponding plan. We report the time to the first feasible solution, denoted by $T_{\mathrm{first}}$, the time when the best solution is obtained, denoted by $T_{\mathrm{best}}$, and the total search time, denoted by $T_{\mathrm{search}}$. 
+\subsection{Branch-and-Bound Optimization} \label{bnb_exp}
+This experiment analyzes the BnB search process by examining the evolution of the search bounds, the pruning ratio, and the improvement in solution cost. 
+Consider a warehouse cargo-handling and safety-inspection task specified by $\varphi=\Diamond a_1\wedge\Diamond a_2\wedge \Diamond(a_3\wedge\Diamond(a_6\wedge\Diamond(a_4\vee a_5))) \wedge\Diamond a_7\wedge\Diamond a_9\wedge\Diamond a_{10}$.
+Specifically, the team consists of five robot types, with five robots of each type, and the action requirements are
+$c(a_1)=(1,3,l_1)$, $c(a_2)=(2,4,l_2)$,
+$c(a_3)=(2,1,l_3)$, $c(a_4)=(1,2,l_4)$,
+$c(a_5)=(5,4,l_5)$, $c(a_6)=(3,3,l_6)$,
+$c(a_7)=(1,3,l_7)$, $c(a_8)=(1,2,l_8)$,
+$c(a_9)=(3,3,l_8)$, and $c(a_{10})=(4,1,l_8)$.
+In this task, type-1  robots handle incoming cargo at $l_1$ and transfer it to $l_4$, while type-2 robots perform temporary storage and order picking. One type-2 robot picks an order at $l_3$, after which two type-3 robots service the equipment at $l_6$. The cargo is then either loaded at $l_4$ by two type-1 robots or inspected at $l_5$ by three type-5 robots. In addition, three type-3 robots inspect the dispatch equipment at $l_8$, while one type-4 robot monitors the dispatch operation. Robot initial positions are randomly generated in the workspace.
 
-\subsection{Warm-Started Branch-and-Bound Optimization} \label{bnb_exp}
-This case study examines whether the warm-started BnB optimizer can effectively improve the solution quality after the first feasible plan is obtained from the on-the-fly plan graph. The task formula is $ \varphi = \Diamond a_1 \wedge \Diamond a_2 \wedge \Diamond(a_3 \wedge \Diamond(a_6 \wedge \Diamond(a_4 \vee a_5))) \wedge \Diamond a_7 \wedge \Diamond a_9 \wedge \Diamond a_{10}.$ Specifically, $c(a_1)=(1,3,l_1), c(a_2)=(2,4,l_2), 
-c(a_3)=(2,1,l_3), c(a_4)=(1,\lfloor n/2 \rfloor,l_4), c(a_5)=(5,\lceil 2n/3 \rceil,l_5), c(a_6)=(3,\max\{2,\lceil 0.75n\rceil\},l_6),\,c(a_7)=(1,3,l_7), c(a_8)=(1,2,l_8), c(a_9)=(3,3,l_8),c(a_{10})=(4,1,l_8).$ Here, $n = 5$ and the robot team consists of five types of robots, with five robots of each type. The initial positions of  robots are randomly generated in the workspace.
-
- As shown in Fig. \ref{bnb}, the initial plan graph returns a feasible solution with $J_{\rm first}=47.21$. The first pruning event occurs at 0.2910 s. This is mainly because that the warm start provides an initial solution at the beginning of the search, which enables a large number of assignment nodes to be pruned early. Overall, 
-the BnB search prunes 122,362 out of 138,145 visited assignment nodes, corresponding to a pruning ratio of 88.57\%.  The best solution with cost $J_{\rm best}=43.32$ is obtained at 2.3679 s. This is because during the BnB search, the estimated lower bound is used as the priority criterion for selecting branching nodes. This best-first strategy biases the search toward partial assignments with more promising current and future costs, allowing the optimizer to find the best solution after exploring only a limited portion of the assignment space.
-
+% As shown in Fig. \ref{bnb}, the initial plan graph returns a feasible solution with $J_{\rm first}=47.21$. The first pruning event occurs at 0.2910 s. This is mainly because that the warm start provides an initial solution at the beginning of the search, which enables a large number of assignment nodes to be pruned early. Overall, 
+% the BnB search prunes 122,362 out of 138,145 visited assignment nodes, corresponding to a pruning ratio of 88.57\%.  The best solution with cost $J_{\rm best}=43.32$ is obtained at 2.3679 s. This is because during the BnB search, the estimated lower bound is used as the priority criterion for selecting branching nodes. This best-first strategy biases the search toward partial assignments with more promising current and future costs, allowing the optimizer to find the best solution after exploring only a limited portion of the assignment space.
+As shown in Fig.~\ref{bnb}, the initial plan obtained from the plan graph provides an incumbent with $J^\star=47.21 \mathrm{s}$ before the BnB search begins. The first pruning occurs at 0.2910 s because this initial incumbent allows nodes with
+$\mathrm{LB}\geq J^\star$ to be discarded immediately. The remaining nodes are selected in nondecreasing order of $\mathrm{LB}$. Each feasible completion provides an upper bound $\mathrm{UB}$, and $J^\star$ is updated whenever a smaller completion time is found. The best solution is obtained at 2.3679 s, reducing the incumbent to $J^\star=43.32 \mathrm{s}$. Overall, the BnB search prunes 122,362 of the 138,145 visited assignment nodes, corresponding to a pruning ratio of 88.57\%. These results demonstrate the effectiveness of search and pruning in reducing the search effort.
 \begin{figure}[!t]
 \centering
-\includegraphics[width=2.5in]{pic/bnb_combo_bounds_first800.png}
-\caption{The evolution of the upper bound, lower bound, and optimal value.}
+\includegraphics[width=2.8in]{pic/bnb_combo_bounds_compressed.png}
+\caption{Evolution of the BnB bounds over the first 800 iterations. $\mathrm{UB}$ and $\mathrm{LB}$ are the node bounds, and $J^\star$ is the incumbent completion time. Iterations 1--100 are shown individually; the remaining intervals are grouped in windows of 2, 4,and 8. Solid curves show the medians, and shaded regions show the minimum--maximum ranges.}
 \label{bnb}
 \end{figure}
 
+\subsection{Ablation of GBA-Level Pruning and On-the-Fly Plan Graph Construction}
+This experiment evaluates GBA-level pruning and on-the-fly plan graph construction for tasks of increasing complexity. We use the same robot team as in Sec.~\ref{bnb_exp}. Consider the patrol task specified as $\varphi=\bigwedge_{i=1}^{m}\Diamond a_i$, where $m$ is the number of required patrol actions and determines the task complexity. For each
+tested value of $m$, the specification contains the first $m$ action propositions. For $i=1,\ldots,8$, $c(a_i)=(1,3,l_i)$, so each action requires three type-1 robots to patrol region $l_i$. For
+$i=9,\ldots,15$, $c(a_i)=(2,3,l_{i-8})$, so three type-2 robots are required to patrol the corresponding region $l_{i-8}$. In each test,
+the robot initial positions are randomly generated in the workspace and then kept identical across all configurations. Each configuration is run 25 times, and the results are averaged over these runs.
 
-\subsection{Effect of Planning-Aware Automaton Construction}
-This case study isolates the contribution of planning-aware automaton construction. We use the same robot team as Sec.\ref{bnb_exp} and consider formulas of the form $\bigwedge_{i=1}^{m}\Diamond a_i$, where $m$ is the number of atomic propositions. Specifically, for $(i=1,\ldots,8)$, $c(a_i)=(1,3,l_i),$ and for $(i=9,\ldots,15)$, $c(a_i)=(2,3,l_{i-8}).$ ]
-Thus, $(a_1,\ldots,a_8)$ require three type-1 robots to visit regions $(l_1,\ldots,l_8)$, respectively, while $(a_9,\ldots,a_{15})$ require three type-2 robots to visit regions $(l_1,\ldots,l_7)$, respectively.
-The proposed method is compared with two variants. The initial positions of  robots are randomly generated in the workspace. The first variant retains the proposed GBA-level pruning but disables on-the-fly planning, so that planning is performed only after the NBA has been fully constructed. The second variant disables both GBA-level pruning and on-the-fly planning during automaton generation; it first constructs the complete NBA and then applies the same feasibility and decomposability pruning as a post-processing step.
+The proposed method is compared with two cases. Case I retains
+GBA-level pruning but postpones plan-graph construction until the
+complete NBA has been generated. Case II generates the complete NBA
+before performing both pruning and plan-graph construction.
 
 % Table~\ref{tab:early_planning} shows that planning-aware expansion during NBA generation consistently reduces the time to the first feasible solution. For example, when $m=15$, the first-solution time is reduced from 1037.2168 s to 723.6905 s.
 % Table~\ref{tab:gba_pruning} further shows that GBA-level
@@ -1171,60 +1286,103 @@ The proposed method is compared with two variants. The initial positions of  rob
 % are prevented from propagating to the NBA and plan-graph
 % stages
 
-Tables~\ref{tab:onthefly_planning} and~\ref{tab:early_pruning}  demonstrate the benefit of integrating pruning and planning into the automaton-generation process. Table~\ref{tab:early_planning} isolates the effect of on-the-fly planning when GBA-level pruning is retained. The proposed method consistently obtains the first feasible solution faster than Variant I, which postpones planning until the NBA is fully constructed. This advantage becomes important for longer specifications, because the cost of complete NBA construction grows rapidly with the number of atomic propositions. Instead of waiting for the full NBA, the proposed method constructs the plan graph during NBA generation and can return a feasible plan as soon as an accepting prefix-suffix structure is discovered.
+Table~\ref{tab:onthefly_planning} shows that the proposed method obtains the first feasible plan faster than Case I for all tested tasks. Specifically, as task complexity increases, our method requires about one-third less time than Case I to obtain the first feasible plan. This reduction arises because task allocation proceeds together
+with NBA generation, allowing a plan to be returned as soon as an accepting prefix--suffix structure is reached. In contrast, Case I incurs the cost of constructing the complete NBA before task allocation begins.
 
-Table~\ref{tab:early_pruning} further shows that early pruning at the GBA level avoids constructing many NBA transitions that would later be removed. For example, when (m=15), Variant II first generates an NBA with ((32768,737280)) states and transitions, whereas the proposed method directly generates the pruned NBA with ((32768,311296)). Although post-processing eventually reduces Variant II to the same NBA size, it has already paid the cost of constructing the larger unpruned NBA. Consequently, its first-solution time is much longer, increasing from 723.6905 s for the proposed method to 1235.5359 s. These results indicate that pruning after complete NBA construction can reduce the final automaton size, but it cannot recover the time wasted on generating unnecessary transitions. Therefore, the proposed framework benefits from both components: GBA-level pruning reduces the automaton construction burden, while on-the-fly planning enables the first feasible plan to be obtained before the complete NBA needs to be explored.
+Table~\ref{tab:early_pruning} compares the proposed method with Case
+II, where the NBA size is reported as
+\((|Q_B|,|\rightarrow_B|)\). For the tested tasks, Case II constructs
+many more NBA transitions before pruning, although its
+pruned NBA has the same size as that generated by the proposed method.
+Since the proposed pruning is performed before the GBA-to-NBA
+transformation, the removed GBA transitions are neither converted into
+NBA transitions nor stored in the NBA. This reduces both the
+computation required for subsequent NBA construction and the memory
+used to store its transition relation. In contrast, Case II constructs
+and stores the complete transition structure before removing
+unnecessary transitions. The shorter first-solution time of the
+proposed method therefore results from this reduction in NBA
+construction together with task allocation during NBA generation.
+
+Overall, although the proposed method does not change the worst-case exponential growth of the NBA, it substantially mitigates its practical impact. GBA-level pruning prevents unnecessary transitions
+from entering the NBA, while on-the-fly plan graph construction uses the generated NBA transitions for task allocation immediately. The proposed method therefore reduces automaton-construction and obtains
+the first feasible plan without waiting for the complete NBA, which is particularly beneficial for complex tasks.
 
 \begin{table}[!t]
-\caption{Effect of On-the-Fly Planning on First-Solution Time\label{tab:onthefly_planning}}
+\caption{Effect of On-the-Fly Plan Graph Construction}
+\label{tab:onthefly_planning}
 \centering
-\begin{tabular}{|c||c|c|}
-\hline
-$m$ & Proposed & Variant I\\
-\hline
+\small
+\setlength{\tabcolsep}{12pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{@{}c cc@{}}
+\toprule
+\multirow{2}{*}{$m$} & Proposed & Case I \\
+\cmidrule(lr){2-2}\cmidrule(lr){3-3}
+& $T_{\mathrm{first}}$ (s) & $T_{\mathrm{first}}$ (s) \\
+\midrule
 12 & 10.4065 & 12.7062\\
-\hline
 13 & 30.7849 & 53.2725\\
-\hline
-14 & 156.0395 & 197.4069\\
-\hline
+14 & 156.0395 & 217.4069\\
 15 & 723.6905 & 1037.2168\\
-\hline
+\bottomrule
 \end{tabular}
 \end{table}
 
 \begin{table*}[!t]
-\caption{Effect of Early Pruning on NBA Size and First-Solution Time\label{tab:early_pruning}}
+\caption{Effect of GBA-Level Pruning}
+\label{tab:early_pruning}
 \centering
 \small
-\begin{tabular}{|c||c|c|c|c|c|}
-\hline
-$m$ & Proposed NBA & Proposed $T_{\mathrm{first}}$ & V-II NBA Before & V-II NBA After & V-II $T_{\mathrm{first}}$\\
-\hline
-10 & $(1024,6144)$ & 1.0016 & $(1024,10240)$ & $(1024,6144)$ & 1.2243\\
-\hline
-12 & $(4096,28672)$ & 10.4065 & $(4096,61440)$ & $(4096,28672)$ & 13.5997\\
-\hline
-13 & $(8192,61440)$ & 30.7849 & $(8192,143360)$ & $(8192,61440)$ & 68.6376\\
-\hline
-14 & $(16384,131072)$ & 156.0395 & $(16384,327680)$ & $(16384,131072)$ & 239.8623\\
-\hline
-15 & $(32768,311296)$ & 723.6905 & $(32768,737280)$ & $(32768,311296)$ & 1235.5359\\
-\hline
+\setlength{\tabcolsep}{8.5pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{@{}c ccc ccc@{}}
+\toprule
+\multirow{2}{*}{$m$}
+& \multicolumn{3}{c}{Proposed}
+& \multicolumn{3}{c}{Case II} \\
+\cmidrule(lr){2-4}\cmidrule(lr){5-7}
+& $|\mathcal B_{\varphi}|$
+& $|\mathcal B_{\varphi}^{-}|$
+& $T_{\mathrm{first}}$ (s)
+& $|\mathcal B_{\varphi}|$
+& $|\mathcal B_{\varphi}^{-}|$
+& $T_{\mathrm{first}}$ (s) \\
+\midrule
+12 & $(4\,096,28\,672)$ & $(4\,096,28\,672)$ & 10.4065
+   & $(4\,096,61\,440)$ & $(4\,096,28\,672)$ & 13.5997 \\
+13 & $(8\,192,61\,440)$ & $(8\,192,61\,440)$ & 30.7849
+   & $(8\,192,143\,360)$ & $(8\,192,61\,440)$ & 68.6376 \\
+14 & $(16\,384,131\,072)$ & $(16\,384,131\,072)$ & 156.0395
+   & $(16\,384,327\,680)$ & $(16\,384,131\,072)$ & 239.8623 \\
+15 & $(32\,768,311\,296)$ & $(32\,768,311\,296)$ & 723.6905
+   & $(32\,768,737\,280)$ & $(32\,768,311\,296)$ & 1235.5359 \\
+\bottomrule
 \end{tabular}
+
+\vspace{1mm}
+\parbox{0.96\textwidth}{\footnotesize
+\emph{Note:} $|\mathcal B_{\varphi}|$ denotes the NBA size when NBA
+generation is completed, whereas $|\mathcal B_{\varphi}^{-}|$ denotes
+the retained size after pruning. For the proposed method, pruning is
+completed at the GBA level before NBA generation; hence, the generated
+NBA already contains only the retained transitions and the two sizes
+are identical. Each NBA size is reported as
+$(|Q_B|,|\rightarrow_B|)$.}
 \end{table*}
 \subsection{First-Solution Quality}
-This case study evaluates whether the first feasible solution generated by the on-the-fly plan graph is already of useful quality. Four representative LTL formulas are tested, and each case is executed 25 times. Specifically, we consider
-\begin{equation}
-\small
+In this experiment, we examine the quality of the first feasible plan returned during on-the-fly plan graph construction. We consider various LTL specifications and compare the first feasible plan with both the best plan found in the completed plan graph and the global optimum. We use the same workspace and robot team as in Sec.~\ref{bnb_exp}. The considered specifications
+are as follows:
+{\small
+\begin{equation*}
 \begin{aligned}
 \varphi_1 ={}&
 \Diamond(a_2 \wedge \Diamond a_1)
-\wedge \Diamond(a_3 \wedge \Diamond (a_5 \wedge  \neg p_5) \\
+\wedge \Diamond\bigl(a_3 \wedge \Diamond(a_5 \wedge \neg p_5) \\
 &\wedge \Diamond a_4
 \wedge \Diamond a_6
 \wedge \Diamond a_7
-\wedge \Diamond a_8 ,\\[1mm]
+\wedge \Diamond a_8\bigr),\\[1mm]
 %
 \varphi_2 ={}&
 \Diamond a_2
@@ -1254,44 +1412,63 @@ This case study evaluates whether the first feasible solution generated by the o
 \wedge \Diamond a_4\\
 &\wedge (\Box a_4 \,\mathcal{U}\, a_5).
 \end{aligned}
-\label{eq:quality_formulas}
-\end{equation}
-These specifications involve various temporal operators and are representative of complex tasks commonly encountered in large-scale factory scenarios. For example, $\varphi_4$ is adapted from the multi-robot pickup and delivery (MRPD) task\cite{luo2024decomposition}.  Each action proposition $a_i$ is associated with an execution requirement \(c(a_i)=(\tau_i,n_i,l_i)\), where \(\tau_i\) is the required robot type, \(n_i\) is the required number of robots, and \(l_i\) is the target region. Specifically, $ c(a_1) =(2,3,l_1), c(a_2)=(1,2,l_8), c(a_3)=(1,1,l_2),c(a_4)=(2,3,l_4), c(a_5)=(1,3,l_7), c(a_6)=(1,2,l_6),c(a_7)=(1,3,l_7), c(a_8)=(1,3,l_8), c(a_9)=(1,3,l_5),c(a_{10})=(1,3,l_3), c(a_{11})=(1,3,l_1).  $
+\end{equation*}
+}
 
-As shown in Tab.\ref{tab:first_solution_quality}, in two out of four cases, the first solution coincides with the best solution found in the generated plan graph. In the remaining two cases, the first solution is only 1.83\% and 4.47\% worse than the corresponding plan-graph best solution, respectively. Meanwhile, GBA pruning removes 40.24\%-81.48\% of the transitions, and the final graph simplification removes 5.00\%-54.93\% of the plan-graph edges. These results support the residual obligation ordering and shared plan-graph design: the method tends to discover a high-quality executable branch
-early while keeping the generated graph compact for subsequent optimization.
+These specifications involve various temporal operators and capture complex requirements commonly encountered in warehouse cargo-handling
+and safety-inspection tasks. In particular, \(\varphi_1\) describes a multistage cargo-handling task and a  safety check. Specification \(\varphi_2\) represents a persistent warehouse inspection task that includes an alternative operation and recurring
+patrol. Specification \(\varphi_3\) captures collaborative equipment maintenance subject to task-precedence and restricted-region
+constraints. Specification \(\varphi_4\), adapted from the multi-robot pickup-and-delivery task in \cite{luo2024decomposition}, describes a delivery task. Each action proposition $a_i$ is associated with an execution requirement \(c(a_i)=(\tau_i,n_i,l_i)\), where \(\tau_i\) is the required robot type, \(n_i\) is the required number of robots, and \(l_i\) is the target region. Specifically, $ c(a_1) =(2,3,l_1), c(a_2)=(1,2,l_8), c(a_3)=(1,1,l_2),c(a_4)=(2,3,l_4), c(a_5)=(1,3,l_7), c(a_6)=(1,2,l_6),c(a_7)=(1,3,l_7), c(a_8)=(1,3,l_8), c(a_9)=(1,3,l_5),c(a_{10})=(1,3,l_3), c(a_{11})=(1,3,l_1).  $
+
+In Table~\ref{tab:first_solution_quality}, we report the cost and computation time of the first feasible plan, the plan-graph best, and
+the global optimum. We also report the sizes of the GBA before and after pruning, denoted by $|\mathcal G_\varphi|$ and $|\mathcal G_\varphi^-|$, respectively, and the size of the resulting
+plan graph, denoted by $|G_P|$. Each GBA size is given as the number of states and transitions, whereas the plan-graph size is given as the
+number of plan nodes and edges.
+
+As shown in Table~\ref{tab:first_solution_quality}, GBA pruning
+substantially reduces the number of transitions for all four specifications, especially for $\varphi_1$, $\varphi_3$, and $\varphi_4$. Consequently, fewer transitions are propagated to  plan-graph construction, reducing both computation and memory usage.
+The first feasible plan has the same cost as the plan-graph best for \(\varphi_1\) and \(\varphi_2\). For \(\varphi_3\) and \(\varphi_4\), its cost is only \(1.83\%\) and \(4.47\%\) higher, respectively. Moreover, the costs of the first feasible plans remain close to the corresponding global optima for all four specifications. During plan-graph construction, the residual-obligation score orders candidate successors according to thecurrent plan cost and the estimated travel required for the remaining tasks. By considering lower-score successors first, the method tends to reach a low-cost accepting branch early. Consequently, it can return a high-quality feasible plan without waiting for the complete plan graph to be constructed.
 
 \begin{table*}[!t]
-\caption{Quality of the First Feasible Solution\label{tab:first_solution_quality}}
+\caption{Quality of the First Feasible Plan}
+\label{tab:first_solution_quality}
 \centering
-\scriptsize
-\begin{tabular}{|c||c|c|c|c|c|c|c|c|}
-\hline
-\multirow{2}{*}{Case}
-& \multicolumn{2}{c|}{First Solution}
-& \multicolumn{2}{c|}{Plan-Graph Best}
-& \multicolumn{2}{c|}{Global Optimum}
-& \multirow{2}{*}{GBA Before/After}
-& \multirow{2}{*}{Plan Graph Before/After}\\
-\cline{2-7}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{@{}c cc cc cc ccc@{}}
+\toprule
+\multirow{2}{*}{Specification}
+& \multicolumn{2}{c}{First Feasible Plan}
+& \multicolumn{2}{c}{Plan-Graph Best}
+& \multicolumn{2}{c}{Global Optimum}
+& \multirow{2}{*}{$|\mathcal G_\varphi|$}
+& \multirow{2}{*}{$|\mathcal G_\varphi^-|$}
+& \multirow{2}{*}{$|G_P|$} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}
 & Cost & Time (s)
 & Cost & Time (s)
 & Cost & Time (s)
-& & \\
-\hline
-1 & 125.23 & 0.1702 & 125.23 & 0.1702 & 102.67 & 1.3557
-& $(144,2916)/(144,640)$ & $(712,2232)/(622,1847)$\\
-\hline
-2 & 74.06 & 0.0619 & 74.06 & 0.0619 & 67.73 & 0.1522
-& $(16,82)/(16,49)$ & $(37,60)/(35,57)$\\
-\hline
-3 & 173.36 & 0.0807 & 170.24 & 0.1071 & 170.24 & 0.1071
-& $(36,324)/(20,60)$ & $(43,71)/(22,32)$\\
-\hline
-4 & 212.98 & 0.4864 & 203.87 & 0.5127 & 176.93 & 1.0008
-& $(97,1044)/(81,291)$ & $(212,466)/(131,299)$\\
-\hline
+& & & \\
+\midrule
+$\varphi_1$ & 125.23 & 0.1702 & 125.23 & 0.1702 & 102.67 & 1.3557
+& $(144,2916)$ & $(144,640)$ & $(622,1847)$ \\
+$\varphi_2$ & 74.06 & 0.0619 & 74.06 & 0.0619 & 67.73 & 0.1522
+& $(16,82)$ & $(16,49)$ & $(35,57)$ \\
+$\varphi_3$ & 173.36 & 0.0807 & 170.24 & 0.1071 & 170.24 & 0.1071
+& $(36,324)$ & $(20,60)$ & $(41,67)$ \\
+$\varphi_4$ & 212.98 & 0.4864 & 203.87 & 0.5127 & 176.93 & 1.0008
+& $(97,1044)$ & $(81,291)$ & $(171,359)$ \\
+\bottomrule
 \end{tabular}
+
+\vspace{1mm}
+\parbox{0.96\textwidth}{\footnotesize
+\emph{Note:} Cost and time denote plan completion time and computation
+time, respectively. $|\mathcal G_\varphi|$, $|\mathcal G_\varphi^-|$,
+and $|G_P|$ denote the sizes of the GBA before pruning, the pruned GBA,
+and the plan graph, respectively. Each size is reported as (number of
+states or nodes, number of transitions or edges).}
 \end{table*}
 
 % Case Study IV evaluates whether the fast first solution is already of useful quality. Table X reports the first
@@ -1303,55 +1480,44 @@ early while keeping the generated graph compact for subsequent optimization.
 % branch early while keeping the graph compact enough for subsequent optimization.
 
 
+% \subsection{Scalability}
+% This case study evaluates scalability with respect to the number of robots. The task formula is $\varphi = \Diamond(a_1 \vee a_2) \wedge\Diamond(a_3 \wedge a_4) \wedge \Diamond a_5 \wedge (\neg a_5\,\mathcal{U}\,(a_3 \wedge a_4))$.  All action propositions in this case require type-1 robots. The execution requirement of each action is defined as \(c(a_i)=(\tau_i,n_i,l_i)\), where \(\tau_i\) is the required robot type, \(n_i\) is the required number of robots, and \(l_i\) is the target region. Specifically, $c(a_1)=(1,n,l_2), c(a_2)=(1,n,l_5),c(a_3)=(1,\lfloor n/3 \rfloor,l_4), c(a_4)=(1,1,l_4), c(a_5)=(1,1,l_5). $
+% Here, the robot team consists only of type-1 robots, and \(n\) denotes the total number of available type-1 robots. 
+
+% Table~\ref{tab:robot_scalability} reports the cost and runtime of the first feasible solution, the best solution found by BnB, and the total search time. The proposed method obtains the first feasible solution quickly for all tested robot-team sizes. Even when (n=100), the first feasible solution is generated in 1.7447 s. This shows that the on-the-fly plan-graph construction remains effective for quickly producing executable plans as the robot team grows.
+
+% On the other hand, the total search time increases rapidly with the number of robots. For $n=5$, the search is completed in 12.78 s, while for  $n=20$, it increases to 1426.57 s. When  $n=50$  and  $n=100$, the search is not fully exhausted within the allowed time. This trend is consistent with the complexity analysis. During plan-graph construction, the greedy evaluation of a candidate node grows mainly with the number of compatible robots, so the first-solution time increases moderately. In contrast, the BnB stage must explore robot assignments whose branching factor is bounded by products of combinatorial terms such as $\prod_i \binom{r_i}{k_i}$. As $n$ increases, the number of compatible robots and the required cardinalitie also increase, causing the assignment space to grow combinatorially.
+
+% These results demonstrate the anytime nature of the proposed framework. The method can return a feasible solution early even for large robot teams, while additional computation can be used to improve or certify the solution when the assignment space is not too large. For larger teams, complete enumeration becomes difficult, but the planner still provides an executable solution within a short time.
+
+% \begin{table}[!t]
+% \caption{Effect of the Number of Robots\label{tab:robot_scalability}}
+% \centering
+% \small
+% \begin{tabular}{|c||c|c|c|c|c|}
+% \hline
+% $n$ & $J_{\mathrm{first}}$ & $T_{\mathrm{first}}$ (s) & $J_{\mathrm{best}}$ & $T_{\mathrm{best}}$ (s) & $T_{\mathrm{search}}$ (s)\\
+% \hline
+% 5 & 47 & 0.1427 & 43 & 0.6612 & 12.779979\\
+% \hline
+% 10 & 46 & 0.1977 & 41 & 1.1977 & 263.79\\
+% \hline
+% 20 & 28 & 0.4176 & 27 & 1.9690 & 1426.57\\
+% \hline
+% 50 & 22 & 0.8604 & 22 & 0.8604 & $\infty$\\
+% \hline
+% 100 & 23 & 1.74468 & 23 & 1.74468 & $\infty$\\
+% \hline
+% \end{tabular}
+% \end{table}
+
+
 \subsection{Scalability}
-This case study evaluates scalability with respect to the number of robots. The task formula is $\varphi = \Diamond(a_1 \vee a_2) \wedge\Diamond(a_3 \wedge a_4) \wedge \Diamond a_5 \wedge (\neg a_5\,\mathcal{U}\,(a_3 \wedge a_4))$.  All action propositions in this case require type-1 robots. The execution requirement of each action is defined as \(c(a_i)=(\tau_i,n_i,l_i)\), where \(\tau_i\) is the required robot type, \(n_i\) is the required number of robots, and \(l_i\) is the target region. Specifically, $c(a_1)=(1,n,l_2), c(a_2)=(1,n,l_5),c(a_3)=(1,\lfloor n/3 \rfloor,l_4), c(a_4)=(1,1,l_4), c(a_5)=(1,1,l_5). $
-Here, the robot team consists only of type-1 robots, and \(n\) denotes the total number of available type-1 robots. 
-
-Table~\ref{tab:robot_scalability} reports the cost and runtime of the first feasible solution, the best solution found by BnB, and the total search time. The proposed method obtains the first feasible solution quickly for all tested robot-team sizes. Even when (n=100), the first feasible solution is generated in 1.7447 s. This shows that the on-the-fly plan-graph construction remains effective for quickly producing executable plans as the robot team grows.
-
-On the other hand, the total search time increases rapidly with the number of robots. For $n=5$, the search is completed in 12.78 s, while for  $n=20$, it increases to 1426.57 s. When  $n=50$  and  $n=100$, the search is not fully exhausted within the allowed time. This trend is consistent with the complexity analysis. During plan-graph construction, the greedy evaluation of a candidate node grows mainly with the number of compatible robots, so the first-solution time increases moderately. In contrast, the BnB stage must explore robot assignments whose branching factor is bounded by products of combinatorial terms such as $\prod_i \binom{r_i}{k_i}$. As $n$ increases, the number of compatible robots and the required cardinalitie also increase, causing the assignment space to grow combinatorially.
-
-These results demonstrate the anytime nature of the proposed framework. The method can return a feasible solution early even for large robot teams, while additional computation can be used to improve or certify the solution when the assignment space is not too large. For larger teams, complete enumeration becomes difficult, but the planner still provides an executable solution within a short time.
-
-\begin{table}[!t]
-\caption{Effect of the Number of Robots\label{tab:robot_scalability}}
-\centering
-\small
-\begin{tabular}{|c||c|c|c|c|c|}
-\hline
-$n$ & $J_{\mathrm{first}}$ & $T_{\mathrm{first}}$ (s) & $J_{\mathrm{best}}$ & $T_{\mathrm{best}}$ (s) & $T_{\mathrm{search}}$ (s)\\
-\hline
-5 & 47 & 0.1427 & 43 & 0.6612 & 12.779979\\
-\hline
-10 & 46 & 0.1977 & 41 & 1.1977 & 263.79\\
-\hline
-20 & 28 & 0.4176 & 27 & 1.9690 & 1426.57\\
-\hline
-50 & 22 & 0.8604 & 22 & 0.8604 & $\infty$\\
-\hline
-100 & 23 & 1.74468 & 23 & 1.74468 & $\infty$\\
-\hline
-\end{tabular}
-\end{table}
-
-
-\subsection{Comparison With Baselines}
-This case study compares the proposed method with a poset-based\cite{liu2024time}method and an MILP-based method\cite{luo2022temporal} on the same LTL formulas and robot-team configurations. The comparison
-focuses on both the first-solution latency and the final cost. We consider four LTL specifications:
+This experiment evaluates how the proposed method scales as the number of robots and task complexity increase. Since poset-based method \cite{liu2024time} and MILP-based method \cite{luo2022temporal} are representative state-of-the-art approaches to LTL-MRTA, we compare the proposed method with
+these approaches to evaluate its scalability as the number of robots and task complexity increase.The specifications describe warehouse cargo-handling and safety-inspection tasks of varying complexity:
 $$
 \begin{aligned}
 \varphi_1 ={}&
-\Diamond a_1
-\wedge \Diamond(a_2 \wedge \Diamond(a_3 \wedge \Diamond a_4))
-\wedge \Box\Diamond a_7,\\
-\varphi_2 ={}&
-\Diamond a_1
-\wedge \Diamond a_2
-\wedge \Diamond(a_3 \wedge \Diamond(a_6 \wedge \Diamond(a_4 \vee a_5)))\\
-&\wedge \Diamond a_7
-\wedge \Diamond a_8
-\wedge \Diamond(a_9 \wedge \Diamond a_{10}),\\
-\varphi_3 ={}&
 \Diamond a_1
 \wedge \Diamond a_2
 \wedge \Diamond(a_3 \wedge \Diamond a_4)
@@ -1359,7 +1525,13 @@ $$
 &\wedge \Diamond a_6
 \wedge \Diamond a_9
 \wedge (\Box\neg a_9 \mathcal{U} a_6),\\
-\varphi_4 ={}&
+\varphi_2 ={}&
+\Diamond a_1
+\wedge \Diamond a_2
+\wedge \Diamond(a_3 \wedge \Diamond(a_6 \wedge \Diamond(a_4 \vee a_5)))\\
+&\wedge \Diamond a_7
+\wedge \Diamond(a_9 \wedge \Diamond a_{10}),\\
+\varphi_3 ={}&
 \Diamond(a_1 \wedge \Diamond a_2)
 \wedge \Diamond a_3
 \wedge \Diamond a_6
@@ -1372,134 +1544,150 @@ $$
 \end{aligned}
 $$
 
-Specifically, $ c(a_1)=(1,2,l_1), c(a_2)=(2,n,l_2), c(a_3)=(2,1,l_3),c(a_4)=(1,\lfloor n/2 \rfloor,l_4), c(a_5)=(5,\lceil 2n/3 \rceil,l_5), c(a_6)=(3,\max{2,\lceil 0.75n\rceil},l_6),c(a_7)=(1,n,l_7),c(a_8)=(1,2,l_8), c(a_9)=(3,1,l_8),c(a_{10})=(4,1,l_8).$ These specifications are used to evaluate the runtime and solution quality of different methods under increasing task complexity.
-The robot team consists of five robot types. We vary  the number of robots of each type $n$ to test different team sizes. For example, let $n = 10$, $5\times 10$ denotes a team with five types of robots and ten robots of each type, i.e., 50 robots in total.
+Specifically, $ c(a_1)=(1,2,l_1), c(a_2)=(2,n,l_2), c(a_3)=(2,1,l_3),c(a_4)=(1,\lfloor n/2 \rfloor,l_4), c(a_5)=(5,\lceil 2n/3 \rceil,l_5), c(a_6)=(3,\max{2,\lceil 0.75n\rceil},l_6),c(a_7)=(1,n,l_7),c(a_8)=(1,2,l_8), c(a_9)=(3,1,l_8),c(a_{10})=(4,1,l_8).$  A configuration denoted by $5\times n$ contains five robot types and
+$n$ robots of each type. For example, let $n = 10$, $5\times 10$ denotes a team with five types of robots and ten robots of each type, i.e., 50 robots in total.
 
-As shown in Tab.\ref{tab:baseline_comparison}, the results show that the proposed method consistently obtains the first feasible solution much faster than the two baselines. This advantage becomes more significant for more complex specifications. For example, under $\varphi_2$ with a $5\times20$ robot team, the proposed method returns the first feasible solution in 1.1497 s, while the poset-based and MILP-based methods require 90.137 s and 67.0037 s, respectively. All three methods eventually reach the same best cost 48.931, but the proposed method reaches its best solution in 3.9071 s, much earlier than the poset-based method and the MILP-based method. Similarly, for the more complex specification $\varphi_4$, the proposed method obtains the first solution within 1.7783 s for the $5\times20$ team, whereas the poset-based and MILP-based methods require 270.42 s and 483.96985 s, respectively.
+Observe in Table~\ref{tab:baseline_comparison} that the proposed
+method outperforms the poset- and MILP-based methods in obtaining both
+the first feasible solution and the best solution found. As the robot
+team grows, \(T_{\mathrm{first}}\) changes only moderately for both the
+proposed and poset-based methods. Nevertheless, the proposed method
+remains substantially faster, and its advantage in both
+\(T_{\mathrm{first}}\) and \(T_{\mathrm{best}}\) becomes more evident
+for complex specifications. Although the MILP-based method completes
+the exhaustive search sooner for some larger instances, the proposed
+method obtains and improves executable plans much earlier.
 
-These results indicate that the proposed framework is particularly effective when an executable plan is needed early. The poset-based method needs to extract and reason over partial-order structures before task allocation, and the MILP-based method must solve a large combinatorial optimization problem before returning a feasible assignment. In contrast, the proposed method constructs the NBA and the plan graph on the fly, so a feasible prefix-suffix plan can be returned as soon as a valid accepting structure is discovered. This explains the large reduction in $T_{\mathrm{first}}$
+The reason is that the proposed method performs task allocation during
+NBA generation and returns a feasible plan once an accepting
+prefix--suffix structure is found. The score-guided plan-graph
+construction prioritizes promising branches and provides a
+high-quality initial solution for subsequent BnB optimization. In
+contrast, the poset-based method must first extract the partial-order
+structures, whose computation depends mainly on the task
+specification. The search space of MILP-based method grows rapidly as the numbers of tasks and robots increase, resulting in a longer time to obtain a feasible solution.
 
 \begin{table*}[!t]
-\caption{Comparison With Poset- and MILP-Based Baselines\label{tab:baseline_comparison}}
+\caption{Scalability Comparison With Poset- and MILP-Based Methods}
+\label{tab:baseline_comparison}
 \centering
-\scriptsize
-\setlength{\tabcolsep}{4pt}
+\footnotesize
+\setlength{\tabcolsep}{5pt}
 \renewcommand{\arraystretch}{1.08}
-\begin{tabular}{|c|c|c||c|c|c|c|c|}
-\hline
-Formula & Team Size & Method 
-& $T_{\mathrm{first}}$ (s) 
-& $T_{\mathrm{best}}$ (s) 
-& $T_{\mathrm{search}}$ (s)
-& $J_{\mathrm{first}}$ 
-& $J_{\mathrm{best}}$\\
-\hline
 
-\multirow{3}{*}{$\varphi_1$} 
-& \multirow{3}{*}{$5\times5$}
-& Proposed & 0.2104 & 0.3041 & 0.9299 & 57.21 & 51.48\\
-\cline{3-8}
-& & Poset & 3.3264 & 7.0590 & 11.059 & 58.96 & 51.48\\
-\cline{3-8}
-& & MILP & 2.1735 & 4.2144 & 59.1163 & 54.38 & 32.85\\
-\hline
+\textit{(a) Computation time (s)}
 
-\multirow{3}{*}{$\varphi_2$} 
-& \multirow{3}{*}{$5\times5$}
-& Proposed & 0.6987 & 3.9554 & 927.48 & 57.773 & 50.98\\
-\cline{3-8}
-& & Poset & 89.203 & 91.287 & 940.062 & 62.45 & 50.98\\
-\cline{3-8}
-& & MILP & 51.4076 & 60.8376 & 632.27 & 66.326 & 50.98\\
-\hline
-
-\multirow{3}{*}{$\varphi_2$} 
-& \multirow{3}{*}{$5\times10$}
-& Proposed & 0.7216 & 4.9678 & 1378.92 & 50.168 & 47.89\\
-\cline{3-8}
-& & Poset & 89.43 & 92.984 & 1305.835 & 48.78 & 47.89\\
-\cline{3-8}
-& & MILP & 59.7567 & 62.2364 & 1198.765 & 56.34 & 47.89\\
-\hline
-
-\multirow{3}{*}{$\varphi_2$} 
-& \multirow{3}{*}{$5\times20$}
-& Proposed & 1.1497 & 3.9071 & 8590.59 & 49.987 & 48.931\\
-\cline{3-8}
-& & Poset & 90.137 & 97.8213 & 8697.43 & 49.076 & 48.931\\
-\cline{3-8}
-& & MILP & 67.0037 & 74.0153 & 2507.36 & 65.32 & 48.931\\
-\hline
-
-\multirow{3}{*}{$\varphi_3$} 
-& \multirow{3}{*}{$5\times5$}
-& Proposed & 0.3890 & 4.2470 & 157.28 & 38.247 & 33.446\\
-\cline{3-8}
-& & Poset & 17.921 & 24.587 & 174.114 & 53.32 & 33.446\\
-\cline{3-8}
-& & MILP & 6.5013 & 11.8756 & 336.4283 & 46.82 & 33.446\\
-\hline
-
-\multirow{3}{*}{$\varphi_3$} 
-& \multirow{3}{*}{$5\times10$}
-& Proposed & 0.3089 & 8.7278 & 203.29 & 35.987 & 32.58\\
-\cline{3-8}
-& & Poset & 18.385 & 18.985 & 247.815 & 33.48 & 32.58\\
-\cline{3-8}
-& & MILP & 6.8304 & 13.9769 & 742.93 & 45.32 & 32.58\\
-\hline
-
-\multirow{3}{*}{$\varphi_3$} 
-& \multirow{3}{*}{$5\times20$}
-& Proposed & 0.4203 & 11.8629 & 421.68 & 44.026 & 33.578\\
-\cline{3-8}
-& & Poset & 17.124 & 24.8491 & 463.769 & 45.7 & 33.578\\
-\cline{3-8}
-& & MILP & 13.9042 & 18.7462 & 1859.54 & 72.89 & 33.578\\
-\hline
-
-\multirow{3}{*}{$\varphi_4$} 
-& \multirow{3}{*}{$5\times5$}
-& Proposed & 1.3311 & 4.5280 & 9972.67 & 69.46 & 57.42\\
-\cline{3-8}
-& & Poset & 267.98 & 268.25 & 9903.93 & 67.64 & 57.42\\
-\cline{3-8}
-& & MILP & 349.1159 & 356.4569 & 1093.42 & 71.326 & 57.42\\
-\hline
-
-\multirow{3}{*}{$\varphi_4$} 
-& \multirow{3}{*}{$5\times10$}
-& Proposed & 1.7716 & 6.8869 & $\infty$ & 47.93 & 35.71\\
-\cline{3-8}
-& & Poset & 268.98 & 269.54 & $\infty$ & 48.96 & 35.71\\
-\cline{3-8}
-& & MILP & 371.2282 & 425.7460 & 3467.98 & 84.56 & 35.71\\
-\hline
-
-\multirow{3}{*}{$\varphi_4$} 
-& \multirow{3}{*}{$5\times20$}
-& Proposed & 1.7783 & 7.0542 & $\infty$ & 42.89 & 33.89\\
-\cline{3-8}
-& & Poset & 270.42 & 271.85 & $\infty$ & 39.67 & 33.89\\
-\cline{3-8}
-& & MILP & 483.9699 & 508.9515 & 9075.42 & 44.54 & 33.89\\
-\hline
-
+\vspace{2pt}
+\begin{tabular}{@{}cc*{3}{S[table-format=3.4]S[table-format=3.4]S[table-format=4.4]}@{}}
+\toprule
+\multirow{2}{*}{Specification}
+& \multirow{2}{*}{Team}
+& \multicolumn{3}{c}{Proposed}
+& \multicolumn{3}{c}{Poset}
+& \multicolumn{3}{c}{MILP} \\
+\cmidrule(lr){3-5}\cmidrule(lr){6-8}\cmidrule(lr){9-11}
+&
+& {$T_{\mathrm{first}}$} & {$T_{\mathrm{best}}$} & {$T_{\mathrm{search}}$}
+& {$T_{\mathrm{first}}$} & {$T_{\mathrm{best}}$} & {$T_{\mathrm{search}}$}
+& {$T_{\mathrm{first}}$} & {$T_{\mathrm{best}}$} & {$T_{\mathrm{search}}$} \\
+\midrule
+\multirow{3}{*}{$\varphi_1$}
+& $5\times5$  & 0.3890 & 4.2470  & 157.28 & 17.921 & 24.587  & 174.114 & 6.5013  & 11.8756 & 336.4283 \\
+& $5\times10$ & 0.3089 & 8.7278  & 203.29 & 18.385 & 18.985  & 247.815 & 6.8304  & 13.9769 & 742.93 \\
+& $5\times20$ & 0.4203 & 11.8629 & 421.68 & 17.124 & 24.8491 & 463.769 & 13.9042 & 18.7462 & 1859.54 \\
+\midrule
+\multirow{3}{*}{$\varphi_2$}
+& $5\times5$  & 0.6987 & 3.9554 & 927.48  & 89.203 & 91.287  & 940.062 & 51.4076 & 60.8376 & 632.27 \\
+& $5\times10$ & 0.7216 & 4.9678 & 1378.92 & 89.43  & 92.984  & 1305.835 & 59.7567 & 62.2364 & 1198.765 \\
+& $5\times20$ & 1.1497 & 3.9071 & 8590.59 & 90.137 & 97.8213 & 8697.43 & 67.0037 & 74.0153 & 2507.36 \\
+\midrule
+\multirow{3}{*}{$\varphi_3$}
+& $5\times5$  & 1.3311 & 4.5280 & 9972.67 & 267.98 & 268.25 & 9903.93 & 349.1159 & 356.4569 & 1093.42 \\
+& $5\times10$ & 1.7716 & 6.8869 & {--}    & 268.98 & 269.54 & {--}    & 371.2282 & 425.7460 & 3467.98 \\
+& $5\times20$ & 1.7783 & 7.0542 & {--}    & 270.42 & 271.85 & {--}    & 483.9699 & 508.9515 & 9075.42 \\
+\bottomrule
 \end{tabular}
+
+\vspace{7pt}
+\textit{(b) Plan cost}
+
+\vspace{2pt}
+\begin{tabular}{@{}cc*{3}{S[table-format=2.3]S[table-format=2.3]}@{}}
+\toprule
+\multirow{2}{*}{Specification}
+& \multirow{2}{*}{Team}
+& \multicolumn{2}{c}{Proposed}
+& \multicolumn{2}{c}{Poset}
+& \multicolumn{2}{c}{MILP} \\
+\cmidrule(lr){3-4}\cmidrule(lr){5-6}\cmidrule(lr){7-8}
+&
+& {$J_{\mathrm{first}}$} & {$J_{\mathrm{best}}$}
+& {$J_{\mathrm{first}}$} & {$J_{\mathrm{best}}$}
+& {$J_{\mathrm{first}}$} & {$J_{\mathrm{best}}$} \\
+\midrule
+\multirow{3}{*}{$\varphi_1$}
+& $5\times5$  & 38.247 & 33.446 & 53.32 & 33.446 & 46.82 & 33.446 \\
+& $5\times10$ & 35.987 & 32.58  & 33.48 & 32.58  & 45.32 & 32.58 \\
+& $5\times20$ & 44.026 & 33.578 & 45.7  & 33.578 & 72.89 & 33.578 \\
+\midrule
+\multirow{3}{*}{$\varphi_2$}
+& $5\times5$  & 57.773 & 50.98  & 62.45  & 50.98  & 66.326 & 50.98 \\
+& $5\times10$ & 50.168 & 47.89  & 48.78  & 47.89  & 56.34  & 47.89 \\
+& $5\times20$ & 49.987 & 48.931 & 49.076 & 48.931 & 65.32  & 48.931 \\
+\midrule
+\multirow{3}{*}{$\varphi_3$}
+& $5\times5$  & 69.46 & 57.42 & 67.64 & 57.42 & 71.326 & 57.42 \\
+& $5\times10$ & 47.93 & 35.71 & 48.96 & 35.71 & 84.56  & 35.71 \\
+& $5\times20$ & 42.89 & 33.89 & 39.67 & 33.89 & 44.54  & 33.89 \\
+\bottomrule
+\end{tabular}
+
+\vspace{2pt}
+\begin{minipage}{0.94\textwidth}
+\footnotesize
+\textit{Note:} The symbol ``--'' indicates that the exhaustive search was not completed within the prescribed limit.
+\end{minipage}
 \end{table*}
 
-\subsection{Online Repair Under Robot Unavailability}
-This case study evaluates online repair when the available robot set changes during execution. The original LTL mission remains unchanged, but assignments involving unavailable robots become invalid and the remaining mission must be repaired from the current execution state.  We use the same task specification, AP setting, workspace, and robot-team configuration as in Sec.\ref{bnb_exp}. Two robot-removal events are triggered: robot 0 is removed at $t=15.0$ s and robot 20 is removed at $t=30.0$ s.
+\subsection{Online Task Reallocation Under Robot Unavailability}
+This case study evaluates online repair when the available robot set changes during execution. 
+The initial LTL specification and robot
+configuration are the same as those in Sec.~\ref{bnb_exp}. 
 
-The proposed workflow generates repaired first solutions within 45.738 ms and 1.652 ms
-for the two events, respectively. The corresponding best repaired solutions are obtained within 69.032 ms and 33.599 ms. As shown in Fig. \ref{dynamic}, during execution, agent 0 breaks down at \(t=15\,\mathrm{s}\) and is removed from the available team. The planner then updates the current execution state and continues the remaining task allocation with the surviving agents. A more severe failure occurs at \(t=30\,\mathrm{s}\), where Agent 20 also becomes unavailable. After this event, the online adaptation module re-identifies the current planning state and resumes the branch-and-bound search from the corresponding node. The unfinished subtasks are then reassigned to the remaining 23 agents. As shown in the timeline figure, no subsequent task segment is assigned to the failed agents, while the remaining agents continue or take over tasks such as \(p_1,p_5\), and \(p_6\). The replanning process preserves the task ordering and collaboration constraints throughout execution. In particular, tasks that are still feasible with the current collaborators continue execution, whereas tasks affected by failed agents are reassigned and executed by other compatible agents. The online search first obtains a feasible solution with cost \(71\), and further improves it to \(62\). Despite the two agent failures, all required tasks are eventually completed at approximately \(62\,\mathrm{s}\), demonstrating that the proposed adaptation method can maintain feasibility and improve the execution plan under unexpected team-size reductions.
+During task execution, robot \(r_{20}\) becomes unavailable at \(t=20 \mathrm{s}\), which triggers replanning.   We run the
+replanning procedure 25 times. The average times required to obtain the first feasible repaired plan and the best repaired plan are
+\(0.045738 \mathrm{s}\) and \(0.39032 \mathrm{s}\), respectively. As shown in Fig.~\ref{dynamic}(a), \(a_5\) was initially assigned to robots \(r_{20}\), \(r_{21}\), \(r_{22}\), and \(r_{24}\). After \(r_{20}\) becomes unavailable, \(r_{23}\) replaces it and travels to \(l_5\), as shown in Fig.~\ref{dynamic}(b). The repaired assignment therefore retains the four robots required to execute \(a_5\).
+%  Two robot-removal events are triggered: robot 0 is removed at $t=15.0$ s and robot 20 is removed at $t=30.0$ s.
+
+% The proposed workflow generates repaired first solutions within 45.738 ms and 1.652 ms
+% for the two events, respectively. The corresponding best repaired solutions are obtained within 69.032 ms and 33.599 ms. As shown in Fig. \ref{dynamic}, during execution, agent 0 breaks down at \(t=15\,\mathrm{s}\) and is removed from the available team. The planner then updates the current execution state and continues the remaining task allocation with the surviving agents. A more severe failure occurs at \(t=30\,\mathrm{s}\), where Agent 20 also becomes unavailable. After this event, the online adaptation module re-identifies the current planning state and resumes the branch-and-bound search from the corresponding node. The unfinished subtasks are then reassigned to the remaining 23 agents. As shown in the timeline figure, no subsequent task segment is assigned to the failed agents, while the remaining agents continue or take over tasks such as \(p_1,p_5\), and \(p_6\). The replanning process preserves the task ordering and collaboration constraints throughout execution. In particular, tasks that are still feasible with the current collaborators continue execution, whereas tasks affected by failed agents are reassigned and executed by other compatible agents. The online search first obtains a feasible solution with cost \(71\), and further improves it to \(62\). Despite the two agent failures, all required tasks are eventually completed at approximately \(62\,\mathrm{s}\), demonstrating that the proposed adaptation method can maintain feasibility and improve the execution plan under unexpected team-size reductions.
 
 \begin{figure}[!t]
 \centering
-\includegraphics[width=2.5in]{pic/dynamic_robot_timeline_with_idle.png}
-\caption{Gantt graph of planning.}
+\subfloat[]{%
+\includegraphics[width=0.48\columnwidth]{pic/case8_focus_19_6_r20_failed.png}}
+\hfil
+\subfloat[]{%
+\includegraphics[width=0.48\columnwidth]{pic/case8_focus_19_6_r20_failed_r23_reassigned_curved_clear.png}}
+\caption{Online task reallocation after robot $r_{20}$ becomes
+unavailable: (a) $r_{20}$ fails during task execution; (b) $r_{23}$
+replaces $r_{20}$ and travels to $l_5$.}
 \label{dynamic}
 \end{figure}
+
+
+% \subsection{Online Repair Under Robot Unavailability}
+% This case study evaluates online repair when the available robot set changes during execution. The original LTL mission remains unchanged, but assignments involving unavailable robots become invalid and the remaining mission must be repaired from the current execution state.  We use the same task specification, AP setting, workspace, and robot-team configuration as in Sec.\ref{bnb_exp}. Two robot-removal events are triggered: robot 0 is removed at $t=15.0$ s and robot 20 is removed at $t=30.0$ s.
+
+% The proposed workflow generates repaired first solutions within 45.738 ms and 1.652 ms
+% for the two events, respectively. The corresponding best repaired solutions are obtained within 69.032 ms and 33.599 ms. As shown in Fig. \ref{dynamic}, during execution, agent 0 breaks down at \(t=15\,\mathrm{s}\) and is removed from the available team. The planner then updates the current execution state and continues the remaining task allocation with the surviving agents. A more severe failure occurs at \(t=30\,\mathrm{s}\), where Agent 20 also becomes unavailable. After this event, the online adaptation module re-identifies the current planning state and resumes the branch-and-bound search from the corresponding node. The unfinished subtasks are then reassigned to the remaining 23 agents. As shown in the timeline figure, no subsequent task segment is assigned to the failed agents, while the remaining agents continue or take over tasks such as \(p_1,p_5\), and \(p_6\). The replanning process preserves the task ordering and collaboration constraints throughout execution. In particular, tasks that are still feasible with the current collaborators continue execution, whereas tasks affected by failed agents are reassigned and executed by other compatible agents. The online search first obtains a feasible solution with cost \(71\), and further improves it to \(62\). Despite the two agent failures, all required tasks are eventually completed at approximately \(62\,\mathrm{s}\), demonstrating that the proposed adaptation method can maintain feasibility and improve the execution plan under unexpected team-size reductions.
+
+% \begin{figure}[!t]
+% \centering
+% \includegraphics[width=2.5in]{pic/dynamic_robot_timeline_with_idle.png}
+% \caption{Gantt graph of planning.}
+% \label{dynamic}
+% \end{figure}
 
 
 % \section{The Design, Intent, and \\ Limitations of the Templates}

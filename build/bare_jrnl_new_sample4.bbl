@@ -146,6 +146,16 @@ Z.~Liu, M.~Guo, W.~Bao, and Z.~Li, ``Fast and adaptive multi-agent planning
   under collaborative temporal logic tasks via poset products,''
   \emph{Research}, vol.~7, p. 0337, 2024.
 
+\bibitem{Brucker1998RCPSP}
+P.~Brucker, S.~Knust, A.~Schoo, and O.~Thiele, ``A branch and bound algorithm
+  for the resource-constrained project scheduling problem,'' \emph{European
+  Journal of Operational Research}, vol. 107, no.~2, pp. 272--288, 1998.
+
+\bibitem{Liu2023BnB}
+Y.~Liu, S.~Jin, J.~Zhou, and Q.~Hu, ``A branch-and-bound algorithm for the
+  unit-capacity resource constrained project scheduling problem with transfer
+  times,'' \emph{Computers \& Operations Research}, vol. 151, p. 106097, 2023.
+
 \bibitem{luo2024decomposition}
 X.~Luo, S.~Xu, R.~Liu, and C.~Liu, ``Decomposition-based hierarchical task
   allocation and planning for multi-robots under hierarchical temporal logic

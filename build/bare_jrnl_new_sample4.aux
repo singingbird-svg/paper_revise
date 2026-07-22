@@ -35,6 +35,7 @@
 \@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-B}}Task Specification}{4}\protected@file@percent }
 \@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Workspace of experiments.}}{5}\protected@file@percent }
 \newlabel{workspace}{{1}{5}}
+\newlabel{ex:warehouse}{{1}{5}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-C}}Problem Definition}{5}\protected@file@percent }
 \newlabel{objective}{{3}{5}}
 \@writefile{toc}{\contentsline {section}{\numberline {IV}System Overview}{5}\protected@file@percent }
@@ -73,51 +74,47 @@
 \newlabel{eq:score}{{8}{10}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VI-C}}Plan-Graph Simplification}{10}\protected@file@percent }
 \newlabel{subsec:final_pruning}{{\mbox  {VI-C}}{10}}
+\newlabel{lem:plan-graph-simplification}{{3}{10}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VI-D}}Plan Extraction}{10}\protected@file@percent }
 \newlabel{subsubsec:plan_extraction}{{\mbox  {VI-D}}{10}}
 \@writefile{toc}{\contentsline {section}{\numberline {VII}BRANCH-AND-BOUND OPTIMIZATION}{10}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VII-A}}Node Expansion}{10}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VII-B}}Lower Bound}{10}\protected@file@percent }
-\newlabel{eq:must_actions}{{9}{10}}
+\citation{Brucker1998RCPSP}
+\citation{Liu2023BnB}
 \@writefile{loa}{\contentsline {algorithm}{\numberline {5}{\ignorespaces Warm-Started BnB on the Generated Plan Graph}}{11}\protected@file@percent }
 \newlabel{alg:bnb}{{5}{11}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VII-B}}Lower Bound}{11}\protected@file@percent }
+\newlabel{eq:must_actions}{{9}{11}}
 \newlabel{eq:bnb_lower_bound}{{10}{11}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VII-C}}Upper Bound}{11}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VII-D}}Branching and Pruning}{11}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {VIII}Plan Adaptation under Agent Failures}{11}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VII-D}}Branching and Pruning}{12}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {VIII}Plan Adaptation under Agent Failures}{12}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{\numberline {IX}Complexity Analysis}{12}\protected@file@percent }
 \newlabel{sec:complexity}{{IX}{12}}
 \@writefile{toc}{\contentsline {section}{\numberline {X}THEORETICAL ANALYSIS}{12}\protected@file@percent }
-\newlabel{lem:ltl2ba-optimization}{{3}{12}}
 \newlabel{lem:initial-completeness}{{4}{12}}
-\newlabel{lem:bnb-feasibility}{{5}{13}}
-\newlabel{lem:optimality}{{1}{13}}
+\newlabel{lem:optimality}{{1}{12}}
+\citation{liu2024time,luo2022temporal}
 \@writefile{toc}{\contentsline {section}{\numberline {XI}NUMERICAL EXPERIMENTS}{13}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {XI-A}}Warm-Started Branch-and-Bound Optimization}{13}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {XI-A}}Branch-and-Bound Optimization}{13}\protected@file@percent }
 \newlabel{bnb_exp}{{\mbox  {XI-A}}{13}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {XI-B}}Effect of Planning-Aware Automaton Construction}{13}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Evolution of the BnB bounds over the first 800 iterations. $\mathrm  {UB}$ and $\mathrm  {LB}$ are the node bounds, and $J^\star $ is the incumbent completion time. Iterations 1--100 are shown individually; the remaining intervals are grouped in windows of 2, 4,and 8. Solid curves show the medians, and shaded regions show the minimum--maximum ranges.}}{13}\protected@file@percent }
+\newlabel{bnb}{{2}{13}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {XI-B}}Ablation of GBA-Level Pruning and On-the-Fly Plan Graph Construction}{13}\protected@file@percent }
 \citation{luo2024decomposition}
-\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces The evolution of the upper bound, lower bound, and optimal value.}}{14}\protected@file@percent }
-\newlabel{bnb}{{2}{14}}
-\@writefile{lot}{\contentsline {table}{\numberline {I}{\ignorespaces Effect of On-the-Fly Planning on First-Solution Time}}{14}\protected@file@percent }
-\newlabel{tab:onthefly_planning}{{I}{14}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {XI-C}}First-Solution Quality}{14}\protected@file@percent }
-\newlabel{eq:quality_formulas}{{11}{14}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {XI-D}}Scalability}{14}\protected@file@percent }
 \citation{liu2024time}
 \citation{luo2022temporal}
-\@writefile{lot}{\contentsline {table}{\numberline {II}{\ignorespaces Effect of Early Pruning on NBA Size and First-Solution Time}}{15}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {I}{\ignorespaces Effect of On-the-Fly Plan Graph Construction}}{14}\protected@file@percent }
+\newlabel{tab:onthefly_planning}{{I}{14}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {XI-C}}First-Solution Quality}{14}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {XI-D}}Scalability}{14}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {II}{\ignorespaces Effect of GBA-Level Pruning}}{15}\protected@file@percent }
 \newlabel{tab:early_pruning}{{II}{15}}
-\@writefile{lot}{\contentsline {table}{\numberline {III}{\ignorespaces Quality of the First Feasible Solution}}{15}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {III}{\ignorespaces Quality of the First Feasible Plan}}{15}\protected@file@percent }
 \newlabel{tab:first_solution_quality}{{III}{15}}
-\@writefile{lot}{\contentsline {table}{\numberline {IV}{\ignorespaces Effect of the Number of Robots}}{15}\protected@file@percent }
-\newlabel{tab:robot_scalability}{{IV}{15}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {XI-E}}Comparison With Baselines}{15}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {V}{\ignorespaces Comparison With Poset- and MILP-Based Baselines}}{16}\protected@file@percent }
-\newlabel{tab:baseline_comparison}{{V}{16}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {XI-F}}Online Repair Under Robot Unavailability}{16}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {XII}Physical experiments}{16}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {XIII}Conclusion}{16}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {XI-E}}Online Task Reallocation Under Robot Unavailability}{15}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {XII}Physical experiments}{15}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {XIII}Conclusion}{15}\protected@file@percent }
 \bibstyle{IEEEtran}
 \bibdata{reference}
 \bibcite{leahy2016persistent}{1}
@@ -131,6 +128,13 @@
 \bibcite{ulusoy2013optimality}{9}
 \bibcite{kantaros2020stylus}{10}
 \bibcite{Chen2024RealTimeReactive}{11}
+\@writefile{lot}{\contentsline {table}{\numberline {IV}{\ignorespaces Scalability Comparison With Poset- and MILP-Based Methods}}{16}\protected@file@percent }
+\newlabel{tab:baseline_comparison}{{IV}{16}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Online task reallocation after robot $r_{20}$ becomes unavailable: (a) $r_{20}$ fails during task execution; (b) $r_{23}$ replaces $r_{20}$ and travels to $l_5$.}}{16}\protected@file@percent }
+\@writefile{lof}{\contentsline {subfigure}{\numberline{(a)}{\ignorespaces {}}}{16}\protected@file@percent }
+\@writefile{lof}{\contentsline {subfigure}{\numberline{(b)}{\ignorespaces {}}}{16}\protected@file@percent }
+\newlabel{dynamic}{{3}{16}}
+\@writefile{toc}{\contentsline {section}{References}{16}\protected@file@percent }
 \bibcite{Gastin2001FastLT}{12}
 \bibcite{10530927}{13}
 \bibcite{schillinger2018simultaneous}{14}
@@ -142,8 +146,7 @@
 \bibcite{karaman2008vehicle}{20}
 \bibcite{2025Task}{21}
 \bibcite{luo2025simultaneous}{22}
-\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Gantt graph of planning.}}{17}\protected@file@percent }
-\newlabel{dynamic}{{3}{17}}
-\@writefile{toc}{\contentsline {section}{References}{17}\protected@file@percent }
 \bibcite{research0337}{23}
-\bibcite{luo2024decomposition}{24}
+\bibcite{Brucker1998RCPSP}{24}
+\bibcite{Liu2023BnB}{25}
+\bibcite{luo2024decomposition}{26}
