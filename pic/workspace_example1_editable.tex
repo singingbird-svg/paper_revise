@@ -3,6 +3,18 @@
 \usepackage{tikz}
 \usetikzlibrary{calc}
 
+\definecolor{inboundfill}{RGB}{216,235,211}
+\definecolor{outboundfill}{RGB}{247,218,205}
+\definecolor{storagefilltwo}{RGB}{207,230,249}
+\definecolor{storagefillthree}{RGB}{221,239,252}
+\definecolor{storagefillfive}{RGB}{198,224,247}
+\definecolor{storagefillsix}{RGB}{214,234,251}
+\definecolor{storagefillseven}{RGB}{187,218,244}
+\definecolor{storagefilleight}{RGB}{229,244,254}
+\definecolor{typeonefill}{RGB}{68,151,178}
+\definecolor{typetwofill}{RGB}{229,126,73}
+\definecolor{robotgroupfill}{RGB}{245,248,252}
+
 \begin{document}
 
 \begin{tikzpicture}[x=0.25cm,y=0.25cm]
@@ -16,15 +28,13 @@
 \newcommand{\region}[6]{%
   \filldraw[fill=#6, draw=gray!65, line width=0.35pt]
     (#2,#3) rectangle ++(#4,#5);
-  \node[font=\fontfamily{ptm}\fontsize{17}{19}\selectfont\itshape]
+  \node[font=\fontfamily{ptm}\fontsize{17}{19}\selectfont\bfseries\boldmath]
     at ($(#2,#3)+(#4/2,#5/2)$) {$l_{#1}$};
 }
 
-% Obstacles are specified as: \obstacle{x}{y}{width}{height}
-% Their coordinates and sizes can also be edited independently.
-\newcommand{\obstacle}[4]{%
-  \fill[black] (#1,#2) rectangle ++(#3,#4);
-}
+% Three walls surround each region. The remaining side is left fully
+% open as the doorway facing the nearest open corridor.
+\tikzset{region wall/.style={draw=black, line width=0.10cm, line cap=butt, line join=miter}}
 
 % Major grid lines every 5 units.
 \foreach \v in {0,5,...,40}{
@@ -33,56 +43,77 @@
 }
 
 % Regions: edit only the four geometric parameters when needed.
-\region{1}{0}{29}{7}{11}{red!12}
-\region{2}{11}{28}{14}{7}{orange!14}
-\region{3}{32}{27}{8}{8}{violet!12}
-\region{4}{11}{6}{7}{7}{magenta!10}
-\region{5}{2}{6}{5}{7}{yellow!16}
-\region{6}{2}{15}{13}{8}{green!12}
-\region{7}{19}{16}{16}{8}{blue!12}
-\region{8}{31}{5}{9}{6}{cyan!12}
+\region{1}{0}{29}{7}{11}{inboundfill}
+\region{2}{11}{28}{14}{7}{storagefilltwo}
+\region{3}{32}{27}{8}{8}{storagefillthree}
+\region{4}{11}{6}{7}{7}{outboundfill}
+\region{5}{2}{6}{5}{7}{storagefillfive}
+\region{6}{2}{15}{13}{8}{storagefillsix}
+\region{7}{19}{16}{16}{8}{storagefillseven}
+\region{8}{31}{5}{9}{6}{storagefilleight}
 
-% Obstacles inherited from the workspace map.
-\obstacle{7}{38}{2}{1}
-\obstacle{24}{38}{2}{2}
-\obstacle{30}{38}{1}{2}
-\obstacle{33}{37}{2}{1}
-\obstacle{37}{37}{2}{1}
-\obstacle{24}{35}{1}{2}
-\obstacle{29}{31}{2}{1}
-\obstacle{20}{25}{1}{2}
-\obstacle{13}{27}{1}{1}
-\obstacle{16}{26}{2}{2}
-\obstacle{12}{25}{2}{1}
-\obstacle{19}{25}{4}{2}
-\obstacle{6}{24}{1}{1}
-\obstacle{8}{25}{1}{2}
-\obstacle{29}{26}{2}{2}
-\obstacle{37}{25}{1}{2}
-\obstacle{16}{21}{2}{2}
-\obstacle{39}{22}{1}{1}
-\obstacle{21}{8}{1}{2}
-\obstacle{20}{9}{1}{1}
-\obstacle{25}{13}{2}{2}
-\obstacle{28}{14}{2}{1}
-\obstacle{29}{12}{1}{2}
-\obstacle{34}{11}{1}{2}
-\obstacle{36}{12}{1}{2}
-\obstacle{37}{11}{1}{1}
-\obstacle{39}{12}{1}{2}
-\obstacle{14}{1}{2}{1}
-\obstacle{21}{3}{1}{2}
-\obstacle{22}{3}{1}{1}
-\obstacle{24}{2}{1}{2}
-\obstacle{28}{7}{1}{2}
-\obstacle{29}{6}{1}{2}
-\obstacle{31}{1}{1}{2}
-\obstacle{36}{1}{1}{3}
-\obstacle{37}{2}{1}{2}
-\obstacle{7}{6}{2}{2}
-\obstacle{4}{2}{2}{2}
-% Thick black outer frame.
-\draw[black, line width=1.4pt] (0,0) rectangle (40,40);
+% Region l_1: only the bottom wall is retained.
+\draw[region wall] (0,29) -- (7,29);
+
+% Region l_2: doorway on the bottom.
+\draw[region wall] (11,28) -- (11,35) -- (25,35) -- (25,28);
+
+% Region l_3: doorway on the left; the right side uses the outer frame.
+\draw[region wall] (32,27) -- (40,27);
+\draw[region wall] (32,35) -- (40,35);
+
+% Region l_4: doorway on the left.
+\draw[region wall] (11,13) -- (18,13) -- (18,6) -- (11,6);
+
+% Region l_5: doorway on the right.
+\draw[region wall] (2,6) -- (7,6);
+\draw[region wall] (2,13) -- (7,13);
+\draw[region wall] (2,6) -- (2,13);
+
+% Region l_6: doorway on the top.
+\draw[region wall] (2,15) -- (15,15);
+\draw[region wall] (2,15) -- (2,23);
+\draw[region wall] (15,15) -- (15,23);
+
+% Region l_7: doorway on the top.
+\draw[region wall] (19,16) -- (35,16);
+\draw[region wall] (19,16) -- (19,24);
+\draw[region wall] (35,16) -- (35,24);
+
+% Region l_8: doorway on the left; the right side uses the outer frame.
+\draw[region wall] (31,5) -- (40,5);
+\draw[region wall] (31,11) -- (40,11);
+
+% Robot team: three Type-1 robots and two Type-2 robots.
+\filldraw[fill=robotgroupfill, fill opacity=0.55, draw=black!60,
+  draw opacity=1, dashed, line width=0.55pt,
+  rounded corners=1.5pt] (19.3,1.2) rectangle (29.7,9.5);
+\node[font=\fontfamily{ptm}\fontsize{14}{16}\selectfont\bfseries]
+  at (24.5,8.3) {Robots};
+\foreach \x/\y in {21.3/6.0,24.5/6.0,27.7/6.0}{
+  \node[circle, minimum size=4.1mm, inner sep=0pt, fill=typeonefill,
+    draw=black!75, line width=0.45pt] at (\x,\y) {};
+}
+\foreach \x/\y in {22.9/3.3,26.1/3.3}{
+  \node[circle, minimum size=4.1mm, inner sep=0pt, fill=typetwofill,
+    draw=black!75, line width=0.45pt] at (\x,\y) {};
+}
+
+% Robot-type legend above region l_3.
+\node[circle, minimum size=2.3mm, inner sep=0pt, fill=typeonefill,
+  draw=black!75, line width=0.4pt] at (25.7,38.3) {};
+\node[anchor=west, inner sep=0pt,
+  font=\fontfamily{ptm}\fontsize{14}{16}\selectfont\bfseries]
+  at (26.7,38.3) {Type 1};
+\node[circle, minimum size=2.3mm, inner sep=0pt, fill=typetwofill,
+  draw=black!75, line width=0.4pt] at (33.1,38.3) {};
+\node[anchor=west, inner sep=0pt,
+  font=\fontfamily{ptm}\fontsize{14}{16}\selectfont\bfseries]
+  at (34.1,38.3) {Type 2};
+
+% Complete black outer frame; boundary-adjacent regions use this frame
+% instead of an additional thick region wall on the outer side.
+\draw[black, line width=0.10cm] (0,0) rectangle (40,40);
 
 \end{tikzpicture}
 \end{document}

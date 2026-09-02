@@ -48,10 +48,10 @@ P.~Schillinger, M.~B{\"u}rger, and D.~V. Dimarogonas, ``Decomposition of finite
   Symposium}.\hskip 1em plus 0.5em minus 0.4em\relax Springer, 2018, pp.
   253--267.
 
-\bibitem{11441465}
-L.~Li, Z.~Zhou, Z.~Chen, H.~Wang, Z.~Kan, and J.~Qin, ``A formal framework for
-  reactive heterogeneous multirobot task allocation in uncertain semantic
-  environments,'' \emph{IEEE Transactions on Cybernetics}, pp. 1--14, 2026.
+\bibitem{11627658}
+Z.~Zhou, C.~Chen, H.~Li, Y.~Qiao, and Z.~Kan, ``From ambiguous language to
+  verifiable plans: Integrating formal synthesis and dynamic affordance
+  reasoning,'' \emph{IEEE Transactions on Robotics}, pp. 1--20, 2026.
 
 \bibitem{luo2022temporal}
 X.~Luo and M.~M. Zavlanos, ``Temporal logic task allocation in heterogeneous
@@ -76,26 +76,20 @@ Y.~Kantaros and M.~M. Zavlanos, ``Stylus*: A temporal logic optimal control
   International Journal of Robotics Research}, vol.~39, no.~7, pp. 812--836,
   2020.
 
-\bibitem{Chen2024RealTimeReactive}
-Z.~Chen and Z.~Kan, ``Real-time reactive task allocation and planning of large
-  heterogeneous multi-robot systems with temporal logic specifications,''
-  \emph{The International Journal of Robotics Research}, vol.~44, no.~4, pp.
-  640--664, 2024.
+\bibitem{11618058}
+Z.~Zhou, Z.~Chen, L.~Li, H.~Li, and Z.~Kan, ``Asymptotic optimal search for
+  scalable multi-agent linear temporal logic task planning,'' in \emph{2026
+  IEEE 20th International Conference on Control and Automation (ICCA)}, 2026,
+  pp. 1--6.
+
+\bibitem{11615804}
+A.~Taheri and D.~Aksaray, ``Motion planning under temporal logic specifications
+  in semantically unknown environments,'' in \emph{2026 American Control
+  Conference (ACC)}, 2026, pp. 4331--4336.
 
 \bibitem{Gastin2001FastLT}
 P.~Gastin and D.~Oddoux, ``Fast ltl to b{\"u}chi automata translation,'' in
   \emph{International Conference on Computer Aided Verification}, 2001.
-
-\bibitem{10530927}
-Z.~Chen, Z.~Zhou, S.~Wang, J.~Li, and Z.~Kan, ``Fast temporal logic mission
-  planning of multiple robots: A planning decision tree approach,'' \emph{IEEE
-  Robotics and Automation Letters}, vol.~9, no.~7, pp. 6146--6153, 2024.
-
-\bibitem{schillinger2018simultaneous}
-P.~Schillinger, M.~B{\"u}rger, and D.~V. Dimarogonas, ``Simultaneous task
-  allocation and planning for temporal logic goals in heterogeneous multi-robot
-  systems,'' \emph{The International Journal of Robotics Research}, vol.~37,
-  no.~7, pp. 818--838, 2018.
 
 \bibitem{guo2015multi}
 M.~Guo and D.~V. Dimarogonas, ``Multi-agent plan reconfiguration under local
@@ -107,16 +101,49 @@ P.~Yu and D.~V. Dimarogonas, ``Distributed motion coordination for multirobot
   systems under ltl specifications,'' \emph{IEEE Transactions on Robotics},
   vol.~38, no.~2, pp. 1047--1062, 2022.
 
+\bibitem{10545569}
+Z.~Chen, L.~Li, and Z.~Kan, ``Distributed task allocation and planning under
+  temporal logic and communication constraints,'' \emph{IEEE Robotics and
+  Automation Letters}, vol.~9, no.~7, pp. 6536--6543, 2024.
+
 \bibitem{smith2010optimal}
 S.~L. Smith, J.~T\u{u}mov{\'a}, C.~Belta, and D.~Rus, ``Optimal path planning
   under temporal logic constraints,'' in \emph{2010 IEEE/RSJ International
   Conference on Intelligent Robots and Systems}.\hskip 1em plus 0.5em minus
   0.4em\relax IEEE, 2010, pp. 3288--3293.
 
+\bibitem{Kloetzer2015LTL}
+Kloetzer, Marius, Mahulea, and Cristian, ``Ltl-based planning in environments
+  with probabilistic observations,'' \emph{IEEE transactions on automation
+  science and engineering: a publication of the IEEE Robotics and Automation
+  Society}, vol.~12, no.~4, pp. 1407--1420, 2015.
+
+\bibitem{9196928}
+D.~Khalidi, D.~Gujarathi, and I.~Saha, ``T: A heuristic search based path
+  planning algorithm for temporal logic specifications,'' in \emph{2020 IEEE
+  International Conference on Robotics and Automation (ICRA)}, 2020, pp.
+  8476--8482.
+
+\bibitem{DING2014399}
+X.~Ding, M.~Lazar, and C.~Belta, ``Ltl receding horizon control for finite
+  deterministic systems,'' \emph{Automatica}, vol.~50, no.~2, pp. 399--408,
+  2014.
+
 \bibitem{kantaros2018sampling}
 Y.~Kantaros and M.~M. Zavlanos, ``Sampling-based optimal control synthesis for
   multirobot systems under global temporal tasks,'' \emph{IEEE Transactions on
   Automatic Control}, vol.~64, no.~5, pp. 1916--1931, 2018.
+
+\bibitem{9385707}
+X.~Luo, Y.~Kantaros, and M.~M. Zavlanos, ``An abstraction-free method for
+  multirobot temporal logic optimal control synthesis,'' \emph{IEEE
+  Transactions on Robotics}, vol.~37, no.~5, pp. 1487--1507, 2021.
+
+\bibitem{7989094}
+P.~Schillinger, M.~Bürger, and D.~V. Dimarogonas, ``Multi-objective search for
+  optimal multi-robot planning with finite ltl specifications and resource
+  constraints,'' in \emph{2017 IEEE International Conference on Robotics and
+  Automation (ICRA)}, 2017, pp. 768--774.
 
 \bibitem{schillinger2017multi}
 P.~Schillinger, M.~B{\"u}rger, and D.~V. Dimarogonas, ``Multi-objective search
@@ -125,16 +152,55 @@ P.~Schillinger, M.~B{\"u}rger, and D.~V. Dimarogonas, ``Multi-objective search
   Automation (ICRA)}.\hskip 1em plus 0.5em minus 0.4em\relax IEEE, 2017, pp.
   768--774.
 
+\bibitem{schillinger2018simultaneous}
+------, ``Simultaneous task allocation and planning for temporal logic goals in
+  heterogeneous multi-robot systems,'' \emph{The International Journal of
+  Robotics Research}, vol.~37, no.~7, pp. 818--838, 2018.
+
 \bibitem{karaman2008vehicle}
 S.~Karaman and E.~Frazzoli, ``Vehicle routing with linear temporal logic
   specifications: Applications to multi-uav mission planning,'' in \emph{AIAA
   guidance, navigation and control conference and exhibit}, 2008, p. 6838.
+
+\bibitem{Raman2015MILP}
+V.~Raman and E.~M. Wolff, ``Mixed-integer linear programming for planning with
+  temporal logic tasks (position paper),'' in \emph{Planning, Search, and
+  Optimization: Papers Presented at the Twenty-Ninth AAAI Conference on
+  Artificial Intelligence}, Austin, TX, USA, 2015.
+
+\bibitem{Chen2024RealTimeReactive}
+Z.~Chen and Z.~Kan, ``Real-time reactive task allocation and planning of large
+  heterogeneous multi-robot systems with temporal logic specifications,''
+  \emph{The International Journal of Robotics Research}, vol.~44, no.~4, pp.
+  640--664, 2024.
 
 \bibitem{2025Task}
 L.~Li, Z.~Chen, H.~Wang, and Z.~Kan, ``Task allocation of heterogeneous robots
   under temporal logic specifications with inter-task constraints and variable
   capabilities,'' \emph{IEEE Transactions on Automation Science and
   Engineering}, vol.~22, no. 000, pp. 14\,030--14\,047, 2025.
+
+\bibitem{10168225}
+------, ``Fast task allocation of heterogeneous robots with temporal logic and
+  inter-task constraints,'' \emph{IEEE Robotics and Automation Letters},
+  vol.~8, no.~8, pp. 4991--4998, 2023.
+
+\bibitem{luo2024decomposition}
+X.~Luo, S.~Xu, R.~Liu, and C.~Liu, ``Decomposition-based hierarchical task
+  allocation and planning for multi-robots under hierarchical temporal logic
+  specifications,'' \emph{IEEE Robotics and Automation Letters}, vol.~9, no.~8,
+  pp. 7182--7189, 2024.
+
+\bibitem{2025Nl2Hltl2Plan}
+S.~Xu, X.~Luo, Y.~Huang, L.~Leng, R.~Liu, and C.~Liu, ``Nl2hltl2plan: Scaling
+  up natural language understanding for multi-robots through hierarchical
+  temporal logic task specifications,'' \emph{IEEE robotics and automation
+  letters}, no.~10, p.~10, 2025.
+
+\bibitem{Finkbeiner2022}
+B.~Finkbeiner and N.~Passing, ``Compositional synthesis of modular systems,''
+  \emph{Innovations in Systems and Software Engineering}, vol.~18, no.~3, pp.
+  455--469, 2022.
 
 \bibitem{luo2025simultaneous}
 X.~Luo and C.~Liu, ``Simultaneous task allocation and planning for multi-robots
@@ -146,6 +212,45 @@ Z.~Liu, M.~Guo, W.~Bao, and Z.~Li, ``Fast and adaptive multi-agent planning
   under collaborative temporal logic tasks via poset products,''
   \emph{Research}, vol.~7, p. 0337, 2024.
 
+\bibitem{Specification}
+B.~Finkbeiner, G.~Geier, and N.~Passing, ``Specification decomposition for
+  reactive synthesis,'' in \emph{NASA Formal Methods}, A.~Dutle, M.~M. Moscato,
+  L.~Titolo, C.~A. Mu{\~{n}}oz, and I.~Perez, Eds.\hskip 1em plus 0.5em minus
+  0.4em\relax Cham: Springer International Publishing, 2021, pp. 113--130.
+
+\bibitem{vaezipoor2021ltl2action}
+P.~Vaezipoor, A.~C. Li, R.~A.~T. Icarte, and S.~A. Mcilraith, ``Ltl2action:
+  Generalizing ltl instructions for multi-task rl,'' in \emph{International
+  Conference on Machine Learning}.\hskip 1em plus 0.5em minus 0.4em\relax PMLR,
+  2021, pp. 10\,497--10\,508.
+
+\bibitem{9341325}
+Y.-L. Kuo, B.~Katz, and A.~Barbu, ``Encoding formulas as deep networks:
+  Reinforcement learning for zero-shot execution of ltl formulas,'' in
+  \emph{2020 IEEE/RSJ International Conference on Intelligent Robots and
+  Systems (IROS)}, 2020, pp. 5604--5610.
+
+\bibitem{9803859}
+H.~Zhang and Z.~Kan, ``Temporal logic guided meta q-learning of multiple
+  tasks,'' \emph{IEEE Robotics and Automation Letters}, vol.~7, no.~3, pp.
+  8194--8201, 2022.
+
+\bibitem{10167731}
+H.~Zhang, H.~Wang, and Z.~Kan, ``Exploiting transformer in sparse reward
+  reinforcement learning for interpretable temporal logic motion planning,''
+  \emph{IEEE Robotics and Automation Letters}, vol.~8, no.~8, pp. 4831--4838,
+  2023.
+
+\bibitem{11570807}
+H.~Zhang, Z.~Zhou, and Z.~Kan, ``Temporal logic guided universal task
+  representations for reinforcement learning,'' \emph{IEEE Transactions on
+  Neural Networks and Learning Systems}, pp. 1--15, 2026.
+
+\bibitem{2006Compilers}
+A.~V. Aho, M.~S. Lam, R.~Sethi, and J.~D. Ullman, ``Compilers. principles,
+  techniques, and tools. 2nd ed.'' \emph{Addison-Wesley Longman Publishing Co.,
+  Inc.}, 2006.
+
 \bibitem{Brucker1998RCPSP}
 P.~Brucker, S.~Knust, A.~Schoo, and O.~Thiele, ``A branch and bound algorithm
   for the resource-constrained project scheduling problem,'' \emph{European
@@ -156,10 +261,31 @@ Y.~Liu, S.~Jin, J.~Zhou, and Q.~Hu, ``A branch-and-bound algorithm for the
   unit-capacity resource constrained project scheduling problem with transfer
   times,'' \emph{Computers \& Operations Research}, vol. 151, p. 106097, 2023.
 
-\bibitem{luo2024decomposition}
-X.~Luo, S.~Xu, R.~Liu, and C.~Liu, ``Decomposition-based hierarchical task
-  allocation and planning for multi-robots under hierarchical temporal logic
-  specifications,'' \emph{IEEE Robotics and Automation Letters}, vol.~9, no.~8,
-  pp. 7182--7189, 2024.
+\bibitem{inbook}
+E.~Plaku and J.~Mcmahon, \emph{Motion Planning and Decision Making for
+  Underwater Vehicles Operating in Constrained Environments in the Littoral},
+  06 2014, vol. 8069, pp. 328--339.
+
+\bibitem{9384182}
+G.~Silano, T.~Baca, R.~Penicka, D.~Liuzza, and M.~Saska, ``Power line
+  inspection tasks with multi-aerial robot systems via signal temporal logic
+  specifications,'' \emph{IEEE Robotics and Automation Letters}, vol.~6, no.~2,
+  pp. 4169--4176, 2021.
+
+\bibitem{8122818}
+S.~Hao, Z.~Huang, L.~Wang, R.~Zhang, X.~Zhang, J.~Peng, and W.~Yu, ``An optimal
+  task decision method for a warehouse robot with multiple tasks based on
+  linear temporal logic,'' in \emph{2017 IEEE International Conference on
+  Systems, Man, and Cybernetics (SMC)}, 2017, pp. 1453--1458.
+
+\bibitem{8675050}
+D.~Singh, E.~Trivedi, Y.~Sharma, and V.~Niranjan, ``Turtlebot: Design and
+  hardware component selection,'' in \emph{2018 International Conference on
+  Computing, Power and Communication Technologies (GUCON)}, 2018, pp. 805--809.
+
+\bibitem{Quigley2009ROS}
+M.~Quigley, B.~P. Gerkey, K.~Conley, J.~Faust, T.~Foote, J.~Leibs, R.~Wheeler,
+  and A.~Y. Ng, ``{ROS}: An open-source robot operating system,'' in \emph{ICRA
+  Workshop on Open Source Software}, 2009.
 
 \end{thebibliography}

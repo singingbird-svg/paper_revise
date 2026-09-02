@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Debian) (preloaded format=pdflatex 2026.7.13)  22 JUL 2026 19:12
+This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Debian) (preloaded format=pdflatex 2026.7.13)  2 SEP 2026 15:02
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -271,115 +271,143 @@ Package: multirow 2019/05/31 v2.5 Span multiple rows of a table
 \bigstrutjot=\dimen179
 ) (/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amssymb.sty
 Package: amssymb 2013/01/14 v3.01 AMS font symbols
-) (/usr/share/texlive/texmf-dist/tex/latex/booktabs/booktabs.sty
+) (/usr/share/texlive/texmf-dist/tex/latex/autobreak/autobreak.sty
+Package: autobreak 2017/02/23 v0.3 simple line breaking of long formulae
+\everybeforeautobreak=\toks33
+\everyafterautobreak=\toks34
+\@autobreak@alltoks=\toks35
+\@autobreak@linetoks=\toks36
+\@autobreak@lhswidth=\dimen180
+\@autobreak@rhswidth=\dimen181
+\@autobreak@maxlhswidth=\dimen182
+\@autobreak@realmaxlhswidth=\dimen183
+\@autobreak@maxrhswidth=\dimen184
+\c@@autobreak@eqnindex=\count276
+\c@@autobreak@subeqnindex=\count277
+ (/usr/share/texlive/texmf-dist/tex/generic/catchfile/catchfile.sty
+Package: catchfile 2019/12/09 v1.8 Catch the contents of a file (HO)
+ (/usr/share/texlive/texmf-dist/tex/generic/infwarerr/infwarerr.sty
+Package: infwarerr 2019/12/03 v1.5 Providing info/warning/error messages (HO)
+) (/usr/share/texlive/texmf-dist/tex/generic/ltxcmds/ltxcmds.sty
+Package: ltxcmds 2019/12/15 v1.24 LaTeX kernel commands for general use (HO)
+) (/usr/share/texlive/texmf-dist/tex/generic/etexcmds/etexcmds.sty
+Package: etexcmds 2019/12/15 v1.7 Avoid name clashes with e-TeX commands (HO)
+ (/usr/share/texlive/texmf-dist/tex/generic/iftex/iftex.sty
+Package: iftex 2019/11/07 v1.0c TeX engine tests
+)))) (/usr/share/texlive/texmf-dist/tex/latex/booktabs/booktabs.sty
 Package: booktabs 2020/01/12 v1.61803398 Publication quality tables
-\heavyrulewidth=\dimen180
-\lightrulewidth=\dimen181
-\cmidrulewidth=\dimen182
-\belowrulesep=\dimen183
-\belowbottomsep=\dimen184
-\aboverulesep=\dimen185
-\abovetopsep=\dimen186
-\cmidrulesep=\dimen187
-\cmidrulekern=\dimen188
-\defaultaddspace=\dimen189
-\@cmidla=\count276
-\@cmidlb=\count277
-\@aboverulesep=\dimen190
-\@belowrulesep=\dimen191
-\@thisruleclass=\count278
-\@lastruleclass=\count279
-\@thisrulewidth=\dimen192
+\heavyrulewidth=\dimen185
+\lightrulewidth=\dimen186
+\cmidrulewidth=\dimen187
+\belowrulesep=\dimen188
+\belowbottomsep=\dimen189
+\aboverulesep=\dimen190
+\abovetopsep=\dimen191
+\cmidrulesep=\dimen192
+\cmidrulekern=\dimen193
+\defaultaddspace=\dimen194
+\@cmidla=\count278
+\@cmidlb=\count279
+\@aboverulesep=\dimen195
+\@belowrulesep=\dimen196
+\@thisruleclass=\count280
+\@lastruleclass=\count281
+\@thisrulewidth=\dimen197
+) (/usr/share/texlive/texmf-dist/tex/latex/threeparttable/threeparttable.sty
+Package: threeparttable 2003/06/13  v 3.0
+\@tempboxb=\box53
 ) (/usr/share/texlive/texmf-dist/tex/latex/siunitx/siunitx.sty (/usr/share/texlive/texmf-dist/tex/latex/l3kernel/expl3.sty
 Package: expl3 2020-02-14 L3 programming layer (loader) 
  (/usr/share/texlive/texmf-dist/tex/latex/l3backend/l3backend-pdfmode.def
 File: l3backend-pdfmode.def 2020-02-03 L3 backend support: PDF mode
-\l__kernel_color_stack_int=\count280
-\l__pdf_internal_box=\box53
+\l__kernel_color_stack_int=\count282
+\l__pdf_internal_box=\box54
 )) (/usr/share/texlive/texmf-dist/tex/latex/l3packages/xparse/xparse.sty
 Package: xparse 2020-02-14 L3 Experimental document command parser
-\l__xparse_current_arg_int=\count281
-\g__xparse_grabber_int=\count282
-\l__xparse_m_args_int=\count283
-\l__xparse_v_nesting_int=\count284
+\l__xparse_current_arg_int=\count283
+\g__xparse_grabber_int=\count284
+\l__xparse_m_args_int=\count285
+\l__xparse_v_nesting_int=\count286
 )
 Package: siunitx 2020/01/15 v2.7u A comprehensive (SI) units package
  (/usr/share/texlive/texmf-dist/tex/latex/l3packages/l3keys2e/l3keys2e.sty
 Package: l3keys2e 2020-02-14 LaTeX2e option processing using LaTeX3 keys
 )
-\l__siunitx_tmp_box=\box54
-\l__siunitx_tmp_dim=\dimen193
-\l__siunitx_tmp_int=\count285
-\l__siunitx_number_mantissa_length_int=\count286
-\l__siunitx_number_uncert_length_int=\count287
-\l__siunitx_round_int=\count288
-\l__siunitx_process_decimal_int=\count289
-\l__siunitx_process_uncertainty_int=\count290
-\l__siunitx_process_fixed_int=\count291
-\l__siunitx_process_integer_min_int=\count292
-\l__siunitx_process_precision_int=\count293
-\l__siunitx_group_min_int=\count294
-\l__siunitx_angle_marker_box=\box55
-\l__siunitx_angle_unit_box=\box56
-\l__siunitx_angle_marker_dim=\dimen194
-\l__siunitx_angle_unit_dim=\dimen195
-\l__siunitx_unit_int=\count295
-\l__siunitx_unit_denominator_int=\count296
-\l__siunitx_unit_numerator_int=\count297
-\l__siunitx_unit_prefix_int=\count298
-\l__siunitx_unit_prefix_base_int=\count299
-\l__siunitx_unit_prefix_gram_int=\count300
-\l__siunitx_number_product_int=\count301
+\l__siunitx_tmp_box=\box55
+\l__siunitx_tmp_dim=\dimen198
+\l__siunitx_tmp_int=\count287
+\l__siunitx_number_mantissa_length_int=\count288
+\l__siunitx_number_uncert_length_int=\count289
+\l__siunitx_round_int=\count290
+\l__siunitx_process_decimal_int=\count291
+\l__siunitx_process_uncertainty_int=\count292
+\l__siunitx_process_fixed_int=\count293
+\l__siunitx_process_integer_min_int=\count294
+\l__siunitx_process_precision_int=\count295
+\l__siunitx_group_min_int=\count296
+\l__siunitx_angle_marker_box=\box56
+\l__siunitx_angle_unit_box=\box57
+\l__siunitx_angle_marker_dim=\dimen199
+\l__siunitx_angle_unit_dim=\dimen256
+\l__siunitx_unit_int=\count297
+\l__siunitx_unit_denominator_int=\count298
+\l__siunitx_unit_numerator_int=\count299
+\l__siunitx_unit_prefix_int=\count300
+\l__siunitx_unit_prefix_base_int=\count301
+\l__siunitx_unit_prefix_gram_int=\count302
+\l__siunitx_number_product_int=\count303
 \c__siunitx_one_fill_skip=\skip67
 \l__siunitx_table_unit_align_skip=\skip68
-\l__siunitx_table_exponent_dim=\dimen196
-\l__siunitx_table_integer_dim=\dimen197
-\l__siunitx_table_mantissa_dim=\dimen198
-\l__siunitx_table_marker_dim=\dimen199
-\l__siunitx_table_result_dim=\dimen256
-\l__siunitx_table_uncert_dim=\dimen257
-\l__siunitx_table_fill_pre_dim=\dimen258
-\l__siunitx_table_fill_post_dim=\dimen259
-\l__siunitx_table_fill_mid_dim=\dimen260
-\l__siunitx_table_pre_box=\box57
-\l__siunitx_table_post_box=\box58
-\l__siunitx_table_mantissa_box=\box59
-\l__siunitx_table_result_box=\box60
+\l__siunitx_table_exponent_dim=\dimen257
+\l__siunitx_table_integer_dim=\dimen258
+\l__siunitx_table_mantissa_dim=\dimen259
+\l__siunitx_table_marker_dim=\dimen260
+\l__siunitx_table_result_dim=\dimen261
+\l__siunitx_table_uncert_dim=\dimen262
+\l__siunitx_table_fill_pre_dim=\dimen263
+\l__siunitx_table_fill_post_dim=\dimen264
+\l__siunitx_table_fill_mid_dim=\dimen265
+\l__siunitx_table_pre_box=\box58
+\l__siunitx_table_post_box=\box59
+\l__siunitx_table_mantissa_box=\box60
+\l__siunitx_table_result_box=\box61
 \l__siunitx_table_number_align_skip=\skip69
 \l__siunitx_table_text_align_skip=\skip70
  (/usr/share/texlive/texmf-dist/tex/latex/translator/translator.sty
 Package: translator 2019-05-31 v1.12a Easy translation of strings in LaTeX
 ))
-\c@lemma=\count302
+\c@lemma=\count304
+\c@theorem=\count305
+\c@definition=\count306
+\c@example=\count307
+\c@problem=\count308
+\c@assumption=\count309
 
-
-Package amsthm Warning: Unknown theoremstyle `italictheorem' on input line 32.
-
-\c@theorem=\count303
-\c@definition=\count304
-\c@example=\count305
-\c@problem=\count306
 
 LaTeX Warning: Unused global option(s):
     [lettersize].
 
-(/home/wenjing/paper/incremental_ltl_new/build/bare_jrnl_new_sample4.aux)
+(/home/wenjing/paper/incremental_ltl_new/build/bare_jrnl_new_sample4.aux
+
+LaTeX Warning: Label `alg:reuse_successors' multiply defined.
+
+)
 \openout1 = `bare_jrnl_new_sample4.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 39.
-LaTeX Font Info:    ... okay on input line 39.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 39.
-LaTeX Font Info:    ... okay on input line 39.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 39.
-LaTeX Font Info:    ... okay on input line 39.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 39.
-LaTeX Font Info:    ... okay on input line 39.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 39.
-LaTeX Font Info:    ... okay on input line 39.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 39.
-LaTeX Font Info:    ... okay on input line 39.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 39.
-LaTeX Font Info:    ... okay on input line 39.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 41.
+LaTeX Font Info:    ... okay on input line 41.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 41.
+LaTeX Font Info:    ... okay on input line 41.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 41.
+LaTeX Font Info:    ... okay on input line 41.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 41.
+LaTeX Font Info:    ... okay on input line 41.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 41.
+LaTeX Font Info:    ... okay on input line 41.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 41.
+LaTeX Font Info:    ... okay on input line 41.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 41.
+LaTeX Font Info:    ... okay on input line 41.
 
 -- Lines per column: 58 (exact).
 Package caption Info: Begin \AtBeginDocument code.
@@ -387,17 +415,17 @@ Package caption Info: subfig package v1.3 is loaded.
 Package caption Info: End \AtBeginDocument code.
 (/usr/share/texlive/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
-\scratchcounter=\count307
-\scratchdimen=\dimen261
-\scratchbox=\box61
-\nofMPsegments=\count308
-\nofMParguments=\count309
-\everyMPshowfont=\toks33
-\MPscratchCnt=\count310
-\MPscratchDim=\dimen262
-\MPnumerator=\count311
-\makeMPintoPDFobject=\count312
-\everyMPtoPDFconversion=\toks34
+\scratchcounter=\count310
+\scratchdimen=\dimen266
+\scratchbox=\box62
+\nofMPsegments=\count311
+\nofMParguments=\count312
+\everyMPshowfont=\toks37
+\MPscratchCnt=\count313
+\MPscratchDim=\dimen267
+\MPnumerator=\count314
+\makeMPintoPDFobject=\count315
+\everyMPtoPDFconversion=\toks38
 ) (/usr/share/texlive/texmf-dist/tex/latex/epstopdf-pkg/epstopdf-base.sty
 Package: epstopdf-base 2020-01-24 v2.11 Base part for package epstopdf
 Package epstopdf-base Info: Redefining graphics rule for `.eps' on input line 485.
@@ -408,136 +436,217 @@ Dictionary: translator-basic-dictionary, Language: English
 ) (/usr/share/texlive/texmf-dist/tex/latex/siunitx/siunitx-abbreviations.cfg
 File: siunitx-abbreviations.cfg 2017/11/26 v2.7k siunitx: Abbreviated units
 )
-LaTeX Font Info:    Trying to load font information for U+msa on input line 39.
+LaTeX Font Info:    Trying to load font information for U+msa on input line 41.
  (/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsa.fd
 File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 )
-LaTeX Font Info:    Trying to load font information for U+msb on input line 39.
+LaTeX Font Info:    Trying to load font information for U+msb on input line 41.
  (/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 )
-LaTeX Font Info:    Trying to load font information for TS1+ptm on input line 108.
- (/usr/share/texlive/texmf-dist/tex/latex/psnfss/ts1ptm.fd
+
+LaTeX Warning: No \author given.
+
+
+LaTeX Warning: No \author given.
+
+
+LaTeX Warning: No \author given.
+
+LaTeX Font Info:    Trying to load font information for TS1+ptm on input line 101.
+(/usr/share/texlive/texmf-dist/tex/latex/psnfss/ts1ptm.fd
 File: ts1ptm.fd 2001/06/04 font definitions for TS1/ptm.
 ) [1{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}
 
 
-] [2] [3] [4]
-<pic/build/workspace_example1_editable.pdf, id=27, 291.92664pt x 291.92664pt>
+] [2] [3]
+<pic/build/workspace_example1_editable.pdf, id=24, 293.37204pt x 293.37204pt>
 File: pic/build/workspace_example1_editable.pdf Graphic file (type pdf)
 <use pic/build/workspace_example1_editable.pdf>
-Package pdftex.def Info: pic/build/workspace_example1_editable.pdf  used on input line 295.
-(pdftex.def)             Requested size: 144.54pt x 144.54198pt.
+Package pdftex.def Info: pic/build/workspace_example1_editable.pdf  used on input line 313.
+(pdftex.def)             Requested size: 144.54pt x 144.54141pt.
 
-Underfull \hbox (badness 1960) in paragraph at lines 301--304
-[]\OT1/ptm/m/n/10 Consider an LTL for-mula $\OML/cmm/m/it/10 '$ \OT1/ptm/m/n/10 over $[]$. Let $\OML/cmm/m/it/10 B[] \OT1/cmr/m/n/10 =
- []
-
-
-Underfull \hbox (badness 6859) in paragraph at lines 306--307
+Underfull \hbox (badness 6859) in paragraph at lines 324--325
 \OT1/ptm/b/n/10 Definition 5 \OT1/ptm/m/n/10 (Sub-task)\OT1/ptm/b/n/10 . \OT1/ptm/m/n/10 Con-sider an NBA tran-si-tion
  []
 
-[5 <./pic/build/workspace_example1_editable.pdf>]
-Underfull \hbox (badness 4429) in paragraph at lines 415--423
-\OT1/ptm/m/n/10 A de-com-pos-able GBA tran-si-tion $\OML/cmm/m/it/10 e[] \OMS/cmsy/m/n/10 2![]$ \OT1/ptm/m/n/10 is called
+[4 <./pic/build/workspace_example1_editable.pdf>]
+
+pdfTeX warning: pdflatex (file ./pic/overall.pdf): PDF inclusion: found PDF version <1.6>, but at most version <1.5> allowed
+<pic/overall.pdf, id=49, 1754.1134pt x 826.64835pt>
+File: pic/overall.pdf Graphic file (type pdf)
+<use pic/overall.pdf>
+Package pdftex.def Info: pic/overall.pdf  used on input line 357.
+(pdftex.def)             Requested size: 438.60315pt x 197.12926pt.
+<pic/prune1.png, id=51, 639.48pt x 533.922pt>
+File: pic/prune1.png Graphic file (type png)
+<use pic/prune1.png>
+Package pdftex.def Info: pic/prune1.png  used on input line 427.
+(pdftex.def)             Requested size: 105.63649pt x 88.20154pt.
+<pic/prune2.png, id=53, 726.642pt x 518.154pt>
+File: pic/prune2.png Graphic file (type png)
+<use pic/prune2.png>
+Package pdftex.def Info: pic/prune2.png  used on input line 432.
+(pdftex.def)             Requested size: 123.68272pt x 88.20154pt.
+[5 <./pic/overall.pdf>]
+Underfull \hbox (badness 5217) in paragraph at lines 459--466
+\OT1/ptm/m/n/10 re-quir-ing sev-eral in-de-pen-dent sub-tasks to be sat-is-fied
  []
 
 
-Underfull \hbox (badness 1845) in paragraph at lines 415--423
-\OT1/ptm/m/n/10 progress-consistent de-com-pos-able if it ad-mits a de-com-
+Underfull \hbox (badness 6461) in paragraph at lines 459--466
+\OT1/ptm/m/n/10 alone is in-suf-fi-cient for prun-ing, since GBA-to-NBA
  []
 
 
-Underfull \hbox (badness 2635) in paragraph at lines 415--423
-\OT1/ptm/m/n/10 po-si-tion $\OT1/cmr/m/n/10 (\OML/cmm/m/it/10 e[]; e[]\OT1/cmr/m/n/10 )$ \OT1/ptm/m/n/10 ac-cord-ing to Def-i-ni-tion 6[] such that
+Underfull \hbox (badness 6542) in paragraph at lines 459--466
+\OT1/ptm/m/n/10 de-gen-er-al-iza-tion also tracks progress through mul-ti-ple
  []
 
-[6]
-Underfull \hbox (badness 10000) in paragraph at lines 591--593
-[] []$\OML/cmm/m/it/10 s[]\OT1/cmr/m/n/10 (\OML/cmm/m/it/10 q[]\OT1/cmr/m/n/10 ) \OMS/cmsy/m/n/10  
+
+Underfull \hbox (badness 1769) in paragraph at lines 459--466
+\OT1/ptm/m/n/10 de-com-po-si-tions al-ter the acceptance-progress up-date and
  []
 
-[7]
-Underfull \vbox (badness 4518) has occurred while \output is active []
+
+Underfull \hbox (badness 10000) in paragraph at lines 459--466
+[] []$\OT1/ptm/m/n/10 .
+ []
 
 
-Underfull \hbox (badness 1817) in paragraph at lines 650--653
-[] []\OT1/ptm/m/n/10 Compute the suc-ces-sor progress flag $[][]$, set-ting
+Underfull \hbox (badness 2762) in paragraph at lines 491--494
+\OT1/ptm/b/n/10 Example 3. \OT1/ptm/m/n/10 Con-tin-u-ing Ex-am-ple 2[], the cor-re-spond-ing
+ []
+
+[6 <./pic/prune1.png> <./pic/prune2.png>]
+Underfull \hbox (badness 3884) in paragraph at lines 585--586
+[]\OT1/ptm/m/n/10 The plan graph in-cre-men-tally records fea-si-ble task-
+ []
+
+
+Underfull \hbox (badness 3078) in paragraph at lines 647--648
+[] []\OT1/ptm/m/n/10 Compute the score $\OML/cmm/m/it/10 s[]\OT1/cmr/m/n/10 (\OML/cmm/m/it/10 q[]\OT1/cmr/m/n/10 )$ \OT1/ptm/m/n/10 ac-cord-ing to
+ []
+
+
+Underfull \vbox (badness 6380) has occurred while \output is active []
+
+ [7]
+
+LaTeX Font Warning: Font shape `OT1/ptm/m/scit' undefined
+(Font)              using `OT1/ptm/m/sc' instead on input line 830.
+
+
+LaTeX Font Warning: Font shape `OT1/ptm/m/scit' undefined
+(Font)              using `OT1/ptm/m/sc' instead on input line 975.
+
+
+Underfull \hbox (badness 3989) in paragraph at lines 978--985
+\OT1/ptm/m/n/10 Con-sider an ex-ist-ing suc-ces-sor plan node $\OML/cmm/m/it/10 ^^W[]$ \OT1/ptm/m/n/10 sat-is-fy-
+ []
+
+
+Underfull \hbox (badness 2197) in paragraph at lines 978--985
+\OT1/ptm/m/n/10 ing $\OML/cmm/m/it/10 ^^W[]:q[] \OT1/cmr/m/n/10 = \OML/cmm/m/it/10 q[]$ \OT1/ptm/m/n/10 and $\OML/cmm/m/it/10 ^^W[]:[] \OT1/cmr/m/n/10 = \OML/cmm/m/it/10 ^^W[]:[]$\OT1/ptm/m/n/10 , where
  []
 
 [8]
-Underfull \hbox (badness 10000) in paragraph at lines 687--691
-[]\OT1/ptm/m/n/10 The pro-ce-dure next calls func-tion \OT1/ptm/m/sc/10 GreedyAs-
+<pic/build/ast_example1_editable.pdf, id=102, 210.41411pt x 191.92001pt>
+File: pic/build/ast_example1_editable.pdf Graphic file (type pdf)
+<use pic/build/ast_example1_editable.pdf>
+Package pdftex.def Info: pic/build/ast_example1_editable.pdf  used on input line 1099.
+(pdftex.def)             Requested size: 163.79846pt x 149.40414pt.
+ [9] [10 <./pic/build/ast_example1_editable.pdf>] [11]
+Underfull \hbox (badness 10000) in paragraph at lines 1401--1406
+[]\OT1/ptm/m/n/10 The main cost of plan-graph con-struc-tion comes
  []
 
 
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [9]
-Underfull \hbox (badness 3557) in paragraph at lines 934--940
-\OT1/ptm/m/n/10 dur-ing con-struc-tion, the cor-re-spond-ing so-lu-tion leaf is
+Underfull \hbox (badness 2384) in paragraph at lines 1401--1406
+\OT1/ptm/m/n/10 from greedy as-sign-ment and plan-node pro-cess-ing. For
  []
 
-[10] [11] [12]
-<pic/bnb_combo_bounds_compressed.png, id=70, 436.029pt x 285.9483pt>
+
+Underfull \hbox (badness 1502) in paragraph at lines 1401--1406
+\OT1/ptm/m/n/10 a par-ent node $\OML/cmm/m/it/10 ^^W[]$ \OT1/ptm/m/n/10 and $\OML/cmm/m/it/10 ^^W[]:^^X$\OT1/ptm/m/n/10 , greedy as-sign-ment re-quires
+ []
+
+
+Underfull \hbox (badness 4913) in paragraph at lines 1401--1406
+\OML/cmm/m/it/10 O\OT1/cmr/m/n/10 ([][] \OMS/cmsy/m/n/10 jR[]j [] jR[]j \OT1/cmr/m/n/10 + \OML/cmm/m/it/10 n[]\OT1/cmr/m/n/10 )$\OT1/ptm/m/n/10 . The residual-
+ []
+
+[12]
+<pic/first_solution_quality.pdf, id=132, 640.6767pt x 368.4048pt>
+File: pic/first_solution_quality.pdf Graphic file (type pdf)
+<use pic/first_solution_quality.pdf>
+Package pdftex.def Info: pic/first_solution_quality.pdf  used on input line 1624.
+(pdftex.def)             Requested size: 226.79846pt x 130.41078pt.
+ [13 <./pic/first_solution_quality.pdf>]
+<pic/bnb_combo_bounds_compressed.png, id=181, 436.029pt x 285.9483pt>
 File: pic/bnb_combo_bounds_compressed.png Graphic file (type png)
 <use pic/bnb_combo_bounds_compressed.png>
-Package pdftex.def Info: pic/bnb_combo_bounds_compressed.png  used on input line 1258.
-(pdftex.def)             Requested size: 202.35622pt x 132.70714pt.
- [13 <./pic/bnb_combo_bounds_compressed.png>]
-Underfull \hbox (badness 1389) in paragraph at lines 1418--1422
-\OT1/cmr/m/n/10 (1\OML/cmm/m/it/10 ; \OT1/cmr/m/n/10 2\OML/cmm/m/it/10 ; l[]\OT1/cmr/m/n/10 )\OML/cmm/m/it/10 ; c\OT1/cmr/m/n/10 (\OML/cmm/m/it/10 a[]\OT1/cmr/m/n/10 ) = (1\OML/cmm/m/it/10 ; \OT1/cmr/m/n/10 1\OML/cmm/m/it/10 ; l[]\OT1/cmr/m/n/10 )\OML/cmm/m/it/10 ; c\OT1/cmr/m/n/10 (\OML/cmm/m/it/10 a[]\OT1/cmr/m/n/10 ) = (2\OML/cmm/m/it/10 ; \OT1/cmr/m/n/10 3\OML/cmm/m/it/10 ; l[]\OT1/cmr/m/n/10 )\OML/cmm/m/it/10 ; c\OT1/cmr/m/n/10 (\OML/cmm/m/it/10 a[]\OT1/cmr/m/n/10 ) =
+Package pdftex.def Info: pic/bnb_combo_bounds_compressed.png  used on input line 1806.
+(pdftex.def)             Requested size: 216.81pt x 142.18404pt.
+ [14 <./pic/bnb_combo_bounds_compressed.png>]
+Underfull \hbox (badness 4913) in paragraph at lines 1843--1846
+\OT1/ptm/m/n/10 The cor-re-spond-ing ac-tion re-quire-ments are: $\OML/cmm/m/it/10 c\OT1/cmr/m/n/10 (\OML/cmm/m/it/10 a[]\OT1/cmr/m/n/10 ) =
  []
 
 
-Underfull \hbox (badness 1389) in paragraph at lines 1418--1422
-\OT1/cmr/m/n/10 (1\OML/cmm/m/it/10 ; \OT1/cmr/m/n/10 3\OML/cmm/m/it/10 ; l[]\OT1/cmr/m/n/10 )\OML/cmm/m/it/10 ; c\OT1/cmr/m/n/10 (\OML/cmm/m/it/10 a[]\OT1/cmr/m/n/10 ) = (1\OML/cmm/m/it/10 ; \OT1/cmr/m/n/10 2\OML/cmm/m/it/10 ; l[]\OT1/cmr/m/n/10 )\OML/cmm/m/it/10 ; c\OT1/cmr/m/n/10 (\OML/cmm/m/it/10 a[]\OT1/cmr/m/n/10 ) = (1\OML/cmm/m/it/10 ; \OT1/cmr/m/n/10 3\OML/cmm/m/it/10 ; l[]\OT1/cmr/m/n/10 )\OML/cmm/m/it/10 ; c\OT1/cmr/m/n/10 (\OML/cmm/m/it/10 a[]\OT1/cmr/m/n/10 ) =
+Underfull \hbox (badness 10000) in paragraph at lines 1843--1846
+\OT1/cmr/m/n/10 (1\OML/cmm/m/it/10 ; \OMS/cmsy/m/n/10 b\OML/cmm/m/it/10 n=\OT1/cmr/m/n/10 2\OMS/cmsy/m/n/10 c\OML/cmm/m/it/10 ; l[]\OT1/cmr/m/n/10 )\OML/cmm/m/it/10 ; c\OT1/cmr/m/n/10 (\OML/cmm/m/it/10 a[]\OT1/cmr/m/n/10 ) = (5\OML/cmm/m/it/10 ; \OMS/cmsy/m/n/10 d\OT1/cmr/m/n/10 2\OML/cmm/m/it/10 n=\OT1/cmr/m/n/10 3\OMS/cmsy/m/n/10 e\OML/cmm/m/it/10 ; l[]\OT1/cmr/m/n/10 )\OML/cmm/m/it/10 ; c\OT1/cmr/m/n/10 (\OML/cmm/m/it/10 a[]\OT1/cmr/m/n/10 ) =
  []
 
 
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [14]
-Underfull \hbox (badness 10000) in paragraph at lines 1547--1549
-[]\OT1/ptm/m/n/10 Specifically, $\OML/cmm/m/it/10 c\OT1/cmr/m/n/10 (\OML/cmm/m/it/10 a[]\OT1/cmr/m/n/10 ) = (1\OML/cmm/m/it/10 ; \OT1/cmr/m/n/10 2\OML/cmm/m/it/10 ; l[]\OT1/cmr/m/n/10 )\OML/cmm/m/it/10 ; c\OT1/cmr/m/n/10 (\OML/cmm/m/it/10 a[]\OT1/cmr/m/n/10 ) =
+Underfull \hbox (badness 10000) in paragraph at lines 1843--1846
+\OT1/cmr/m/n/10 (3\OML/cmm/m/it/10 ; []\OMS/cmsy/m/n/10 f\OT1/cmr/m/n/10 2\OML/cmm/m/it/10 ; \OMS/cmsy/m/n/10 d\OT1/cmr/m/n/10 0\OML/cmm/m/it/10 :\OT1/cmr/m/n/10 75\OML/cmm/m/it/10 n\OMS/cmsy/m/n/10 eg\OML/cmm/m/it/10 ; l[]\OT1/cmr/m/n/10 )\OML/cmm/m/it/10 ; c\OT1/cmr/m/n/10 (\OML/cmm/m/it/10 a[]\OT1/cmr/m/n/10 ) = (1\OML/cmm/m/it/10 ; n; l[]\OT1/cmr/m/n/10 )\OML/cmm/m/it/10 ; c\OT1/cmr/m/n/10 (\OML/cmm/m/it/10 a[]\OT1/cmr/m/n/10 ) =
  []
 
+<pic/scalability_Tfirst.pdf, id=191, 748.9259pt x 288.42093pt>
+File: pic/scalability_Tfirst.pdf Graphic file (type pdf)
+<use pic/scalability_Tfirst.pdf>
+Package pdftex.def Info: pic/scalability_Tfirst.pdf  used on input line 1849.
+(pdftex.def)             Requested size: 252.0pt x 97.0452pt.
+<pic/dynamic1.png, id=192, 874.248pt x 867.678pt>
+File: pic/dynamic1.png Graphic file (type png)
+<use pic/dynamic1.png>
+Package pdftex.def Info: pic/dynamic1.png  used on input line 2035.
+(pdftex.def)             Requested size: 106.63942pt x 105.83954pt.
+<pic/dynamic2.png, id=193, 1076.385pt x 872.715pt>
+File: pic/dynamic2.png Graphic file (type png)
+<use pic/dynamic2.png>
+Package pdftex.def Info: pic/dynamic2.png  used on input line 2041.
+(pdftex.def)             Requested size: 130.52383pt x 105.83954pt.
+[15 <./pic/scalability_Tfirst.pdf> <./pic/dynamic1.png> <./pic/dynamic2.png>]
+<pic/physical_static.png, id=247, 1720.245pt x 1019.007pt>
+File: pic/physical_static.png Graphic file (type png)
+<use pic/physical_static.png>
+Package pdftex.def Info: pic/physical_static.png  used on input line 2546.
+(pdftex.def)             Requested size: 516.0pt x 260.94899pt.
+<pic/dynamic.png, id=249, 1285.749pt x 489.684pt>
+File: pic/dynamic.png Graphic file (type png)
+<use pic/dynamic.png>
+Package pdftex.def Info: pic/dynamic.png  used on input line 2564.
+(pdftex.def)             Requested size: 252.0pt x 84.16684pt.
+ [16] (/home/wenjing/paper/incremental_ltl_new/build/bare_jrnl_new_sample4.bbl [17 <./pic/physical_static.png> <./pic/dynamic.png>]) [18] (/home/wenjing/paper/incremental_ltl_new/build/bare_jrnl_new_sample4.aux)
 
-Underfull \hbox (badness 2662) in paragraph at lines 1547--1549
-\OT1/cmr/m/n/10 (5\OML/cmm/m/it/10 ; \OMS/cmsy/m/n/10 d\OT1/cmr/m/n/10 2\OML/cmm/m/it/10 n=\OT1/cmr/m/n/10 3\OMS/cmsy/m/n/10 e\OML/cmm/m/it/10 ; l[]\OT1/cmr/m/n/10 )\OML/cmm/m/it/10 ; c\OT1/cmr/m/n/10 (\OML/cmm/m/it/10 a[]\OT1/cmr/m/n/10 ) = (3\OML/cmm/m/it/10 ; [] []; l[]\OT1/cmr/m/n/10 )\OML/cmm/m/it/10 ; c\OT1/cmr/m/n/10 (\OML/cmm/m/it/10 a[]\OT1/cmr/m/n/10 ) =
- []
+LaTeX Warning: There were multiply-defined labels.
 
-<pic/case8_focus_19_6_r20_failed.png, id=88, 406.51875pt x 406.51875pt>
-File: pic/case8_focus_19_6_r20_failed.png Graphic file (type png)
-<use pic/case8_focus_19_6_r20_failed.png>
-Package pdftex.def Info: pic/case8_focus_19_6_r20_failed.png  used on input line 1668.
-(pdftex.def)             Requested size: 120.95892pt x 120.95789pt.
-LaTeX Font Info:    Trying to load font information for OT1+phv on input line 1668.
-(/usr/share/texlive/texmf-dist/tex/latex/psnfss/ot1phv.fd
-File: ot1phv.fd 2001/06/04 scalable font definitions for OT1/phv.
-)
-<pic/case8_focus_19_6_r20_failed_r23_reassigned_curved_clear.png, id=89, 406.51875pt x 406.51875pt>
-File: pic/case8_focus_19_6_r20_failed_r23_reassigned_curved_clear.png Graphic file (type png)
-<use pic/case8_focus_19_6_r20_failed_r23_reassigned_curved_clear.png>
-Package pdftex.def Info: pic/case8_focus_19_6_r20_failed_r23_reassigned_curved_clear.png  used on input line 1671.
-(pdftex.def)             Requested size: 120.95892pt x 120.95789pt.
- [15] (/home/wenjing/paper/incremental_ltl_new/build/bare_jrnl_new_sample4.bbl [16 <./pic/case8_focus_19_6_r20_failed.png> <./pic/case8_focus_19_6_r20_failed_r23_reassigned_curved_clear.png>]) [17
-
-] (/home/wenjing/paper/incremental_ltl_new/build/bare_jrnl_new_sample4.aux) ) 
+ ) 
 Here is how much of TeX's memory you used:
- 7598 strings out of 483107
- 153361 string characters out of 5964630
- 410989 words of memory out of 5000000
- 22488 multiletter control sequences out of 15000+600000
- 581113 words of font info for 124 fonts, out of 8000000 for 9000
+ 8021 strings out of 483107
+ 160942 string characters out of 5964630
+ 414932 words of memory out of 5000000
+ 22887 multiletter control sequences out of 15000+600000
+ 575171 words of font info for 114 fonts, out of 8000000 for 9000
  63 hyphenation exceptions out of 8191
- 41i,13n,49p,2237b,803s stack positions out of 5000i,500n,10000p,200000b,80000s
-{/usr/share/texlive/texmf-dist/fonts/enc/dvips/base/8r.enc}</usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbsy10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cmextra/cmex9.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi5.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi9.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmib10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr5.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmss10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy9.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/symbols/msam10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/helvetic/uhvr8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmbi8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on /home/wenjing/paper/incremental_ltl_new/build/bare_jrnl_new_sample4.pdf (17 pages, 876044 bytes).
+ 41i,14n,49p,1609b,659s stack positions out of 5000i,500n,10000p,200000b,80000s
+{/usr/share/texlive/texmf-dist/fonts/enc/dvips/base/8r.enc}</usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbsy10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi5.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmib10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr5.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmss10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy5.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/symbols/msam10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmbi8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
+Output written on /home/wenjing/paper/incremental_ltl_new/build/bare_jrnl_new_sample4.pdf (18 pages, 46182741 bytes).
 PDF statistics:
- 198 PDF objects out of 1000 (max. 8388607)
- 139 compressed objects within 2 object streams
+ 343 PDF objects out of 1000 (max. 8388607)
+ 186 compressed objects within 2 object streams
  0 named destinations out of 1000 (max. 500000)
- 21 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 79 words of extra memory for PDF output out of 10000 (max. 10000000)
 
