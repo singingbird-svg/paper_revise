@@ -1,0 +1,1744 @@
+1
+
+Distributed Task Allocation Under Temporal Logic and
+Communication Constraints with Resilient Task Coordination
+Abstract—Coordinating task allocation for heterogeneous
+multi-robot systems under communication and temporal-logic
+constraints is challenging because plans that are feasible offline
+may become blocked or unrealizable during execution when
+robots cannot maintain complete global information. To address
+this, a distributed task allocation framework with resilient task
+coordination is developed. The global task is translated into a
+pruned Büchi automaton, decomposed into executable subtasks,
+and initially allocated through a consensus-based timetable algorithm. To sustain task coordination under limited communication
+range, the proposed framework incorporates two complementary
+mechanisms: a patrol mechanism that actively gathers information to release temporally blocked subtasks, and a resilient
+task coordination mechanism for collaborative subtasks that
+integrates leader-based coordination, timeout-triggered recruitment, and free-market-based reassignment. In this way, the
+framework couples distributed task allocation with resilient task
+coordination, enabling the robot team to maintain task progress
+despite incomplete and delayed information. Simulations on 25
+benchmark instances and a physical experiment demonstrate
+the effectiveness of the proposed framework in sustaining task
+execution under limited communication.
+Index Terms—Linear Temporal Logic, Multi-robot Systems,
+Task Allocation, Multi-robot Coordination.
+
+I. INTRODUCTION
+Multi-robot systems (MRS) are increasingly important in
+applications such as patrol, surveillance, and logistics [1], [2],
+because robot teams can provide higher efficiency, robustness,
+and flexibility than a single robot can. Multi-robot task allocation (MRTA) is therefore a fundamental problem in MRS.
+Existing task-allocation methods are generally divided into
+centralized and distributed approaches. Centralized methods
+compute assignments through a coordinator with global information [3], [4], but they often suffer from high computational
+cost and single-point-of-failure issues, which limit scalability
+and robustness in dynamic environments. By contrast, distributed methods allow robots to make decisions based on local
+information and limited communication, including auctionbased algorithms [5], [6], contract-net protocols [7], and rulebased methods [8]. These methods are especially attractive in
+communication-constrained scenarios such as security patrol
+and post-disaster search and rescue [9].
+However, many practical multi-robot missions are not only
+communication-constrained, but also subject to temporal requirements such as ordering, persistence, and synchronization
+[10], which makes MRTA more challenging. To specify such
+requirements formally and precisely, recent studies have increasingly adopted formal languages [11], among which linear
+temporal logic (LTL) is one of the most widely used [12].
+LTL provides a rigorous and unambiguous framework for task
+specification. For example, Li et al. [13] studied heterogeneous
+MRTA under global LTL specifications with variable robot capabilities and inter-task constraints. Yu et al. [14] investigated
+
+fully distributed LTL-based multi-robot motion coordination
+using only local information, and employed online conflict
+detection and local replanning to preserve safety and specification feasibility. Despite this progress, sustaining global
+LTL missions in a distributed manner remains challenging
+under limited communication, because robots cannot maintain
+complete and timely team-state information during execution.
+Motivated by this challenge, this work develops a distributed
+task allocation framework with resilient task coordination
+under temporal logic and communication constraints.
+Under LTL constraints, existing task allocation and planning
+methods can generally be classified into top-down and bottomup approaches. In top-down methods, a global LTL formula is
+used to specify the overall mission, and a centralized planner
+decomposes it into robot-level plans. A common strategy is
+to construct a product automaton from the nondeterministic
+Büchi automaton (NBA) derived from the global LTL formula
+and the discrete transition systems of the robots, and then
+solve the resulting graph-search problem [15], [16]. However,
+this approach suffers from severe state explosion in multirobot settings and is difficult to adapt to dynamic execution
+scenarios involving robot addition or removal. Sampling-based
+methods [17], [18] improve upon the above methods by
+constructing generation trees from NBA samples rather than
+from the full product automaton. However, such methods
+typically require the candidate robots for each subtask to be
+specified in advance. Luo et al. [19] formulated temporallogic task allocation as a mixed-integer programming problem;
+however, it is difficult to adapt online to practical execution
+contingencies such as robot failures. Chen et al. [20] proposed an incremental decision-tree-based method that supports
+online adaptation, but it relies on global information. Recognizing the parallel and concurrent nature of MRS, some
+studies decompose a global specification into multiple subtasks
+using automaton transition relations to increase parallelism.
+Schillinger et al. [21], [22] decomposed the global task into
+a set of parallel subtasks. However, this method does not
+explicitly handle collaborative subtasks. Based on these works,
+Liu et al. [23], [24] further improved efficiency by representing subtask temporal relations with posets. Recent studies
+also combine large language models with optimization-based
+schedulers, such as DEXTER-LLM [25]. Overall, although
+advanced top-down methods are effective at deriving task
+assignments from global temporal-logic specifications, can
+handle collaborative subtasks, and in some cases allow online
+adaptation, they still largely rely on centralized coordination
+and reliable global information. As a result, they are difficult
+to deploy with limited communication.
+Bottom-up approaches, in contrast, usually assume that each
+robot is assigned a local temporal-logic task, and distributed
+coordination is then achieved through neighbor communica-
+
+2
+
+tion and online replanning. Filippidis et al. [26] proposed a distributed planning framework under temporal logic constraints
+that enables robots to exchange information and verify conflicts online. Each robot can communicate only with neighbors
+within its communication range, and a dedicated “follower”
+robot is used to establish and maintain communication links
+when interaction is required. In [27], [28], each robot updates
+its knowledge based on local observations and propagates it
+through neighbor communication; with newly received knowledge, robots confirm and adjust their action paths online. However, such neighbor-only communication cannot guarantee that
+all robots required for a collaborative subtask can mutually
+communicate when needed. For scenarios with collaborative
+tasks, Tian et al. [29] proposed a distributed cooperative
+computation framework that decomposes task constraints via
+an interaction-edge product automaton, enabling robots to
+synthesize local trajectories in parallel using only neighborhood interaction information. Most existing work focuses on
+avoiding physical collisions while overlooking task conflicts.
+Chen et al. [30] addressed task-level conflict resolution under
+communication constraints by predicting the goals of robots
+beyond communication range.
+Compared with top-down approaches, these methods are
+generally more robust to communication constraints. However,
+many of them rely on a key assumption that local tasks
+are known or preassigned in advance. This assumption limits
+their applicability in scenarios where only a global mission
+is available. Moreover, when communication is restricted to
+local neighborhoods, information exchange alone may be insufficient to reliably support collaborative subtasks that require
+multiple robots. Therefore, existing methods still leave an
+important gap for scenarios in which robots must derive
+executable local behavior from a global specification and
+sustain task execution under limited communication range.
+This gap becomes particularly significant in practical applications such as industrial inspection, photovoltaic power
+station patrol, and large-scale facility monitoring, where communication is restricted and mission requirements are more
+naturally specified as a global LTL formula rather than as
+preassigned local tasks. In such settings, the main challenge
+lies not only in obtaining a feasible initial task assignment,
+but also in sustaining task coordination during execution under
+limited communication range. Because robots cannot maintain
+a complete and timely view of the team state, a subtask that is
+feasible at the planning stage may later become unrealizable
+because of sudden robot failures or other unexpected events.
+In particular, two major challenges arise during mission execution. First, a robot may be unable to verify whether the
+temporal prerequisites of one of its pending subtasks have been
+satisfied, which leads to task blocking. Second, a collaborative
+subtask may fail to start because the required robots do not
+arrive in time. Existing recovery strategies, including role
+reassignment, task reprioritization, and subtask reissuing [31]–
+[33], can alleviate these issues to some extent, but they often
+operate from fragmented local views. Consequently, repeated
+failures due to the lack of global information or delayed
+information propagation may substantially increase the overall
+mission completion time.
+
+Motivated by these challenges, this work develops a distributed task allocation framework with resilient task coordination under temporal logic and communication constraints.
+In particular, the proposed method explicitly addresses two
+issues that are not systematically handled in prior work: task
+blocking caused by unconfirmed temporal prerequisites and
+collaborative-subtask failures caused by incomplete team-state
+information. To address task blocking caused by unconfirmed
+prerequisite completion, a patrol mechanism is introduced to
+actively gather and relay task-state information. To improve
+the resilience of task coordination, especially for collaborative
+subtasks, a resilient task coordination mechanism is developed
+by integrating leader-based coordination, timeout-triggered recruitment, and free-market-based reassignment. Here, the free
+market is a designated rendezvous region where robots synchronize state information and recover failed subtasks based
+on a more complete view of the team state. By explicitly incorporating these coordination and recovery mechanisms into
+execution, the proposed framework improves the robustness of
+global mission execution under limited communication. The
+main contributions of this work are summarized as follows:
+•
+
+•
+
+•
+
+•
+
+We propose a distributed task allocation framework that
+integrates task allocation and resilient task coordination
+under temporal logic and communication constraints,
+enabling robot teams to sustain task execution from a
+global specification using local information.
+To address task blocking under limited communication,
+a patrol mechanism is proposed to actively gather information when prerequisite subtasks are overdue but
+completion is unconfirmed.
+To strengthen resilient task coordination for collaborative
+subtasks, two complementary mechanisms are designed: a
+leader-based coordination with timeout-triggered recruitment to reduce subtask failures, and a free-market-based
+reassignment to mitigate significant delays when failures
+occur.
+Theoretical analysis establishes completeness and taskcompletion guarantees under the assumptions of this
+paper.
+
+Notations: Let N and [N ] denote the set of natural numbers
+and the shorthand notation for {1, . . . , N }, respectively. Given
+a set A, let |A| and 2A denote the cardinality and power set
+of A, respectively.
+II. PRELIMINARIES
+LTL formulas are constructed from atomic propositions
+AP using Boolean operators and temporal operators. Atomic
+propositions represent basic Boolean variables whose values
+are evaluated as either true or false. Detailed content can be
+found in [12]. LTL formulas can be translated into NBA.
+Definition 1 (Nondeterministic Büchi Automaton). A nondeterministic Büchi automaton (NBA) is a tuple B =
+(S, S0 , Σ, δ, F ), where S is a finite set of states, S0 ⊆ S
+is the set of initial states, Σ = 2AP is the input alphabet,
+δ : S × Σ → 2S is the transition function, and F ⊆ S is the
+set of accepting states.
+
+3
+
+Given an infinite word ω = σ0 σ1 σ2 . . . with σi ∈ Σ, a
+run ρ = s0 s1 s2 . . . of the NBA B over ω is an infinite state
+sequence such that s0 ∈ S0 and si+1 ∈ δ(si , σi ) for all i ≥ 0.
+The run ρ is accepting if it visits states in F infinitely often.
+Accepting runs can be represented in a prefix–suffix structure,
+where the prefix wpre runs from an initial state to an accepting
+state, and the suffix wsuf forms a cycle containing at least one
+accepting state.
+This paper focuses on a special class of LTL formulas called
+syntactically co-safe LTL (sc-LTL) [34]. sc-LTL formulas
+restrict temporal operators to ⃝ (next), ∪ (until), and ♢
+(eventually), and must be written in a positive normal form.
+III. PROBLEM STATEMENT
+A. Environment and Multi-Robot System
+In a discrete workspace W ⊆ R2 , let L = {l1 , l2 , . . . , lM }
+be M pairwise disjoint target regions, i.e., li ∩ lj = ∅ for all
+i ̸= j, where i, j ∈ [M ]. Let U denote uninteresting regions,
+such as forbidden areas, and assume li ∩ U = ∅.
+Given workspace W, we consider a heterogeneous robot
+team R = {r1 , r2 , . . . , rN }, where N is the number of robots.
+The robots have nt different types, where each robot belongs
+to exactly one type. Let T = [nt ] denote the type index set.
+For each i ∈ T , S
+let Ri ⊆ R denote the set of robots of
+nt
+type i. Then R = i=1
+Ri and Ri ∩ Rj = ∅, ∀i ̸= j. For any
+robot rm , its velocity and position are denoted by vm and xm ,
+respectively. Consider a time sequence {τn = n∆t}n∈N with
+sampling interval ∆t. For convenience, for any quantity y,
+y(τn ) denotes the value or state of y at time τn . In other words,
+the argument τn indicates the realization of the corresponding
+variable evaluated at τn .
+Assuming communication range D ∈ R+ , robots can
+only communicate with neighbors within this range. The
+neighbor set of robot rm at time τn is defined as:
+Nm (τn ) = {rn | ∥xm (τn ) − xn (τn )∥ ≤ D}. The communication frequency is denoted by fcom in Hz.
+B. Problem Description
+To better describe the problem, we first introduce the atomic
+propositions. Let am
+i,w represent the action required for task
+completion, indicating that w robots of type i must execute this
+action at region lm ∈ L, where i ∈ T , w ∈ N, and w ≤ |Ri |.
+The following atomic propositions are then introduced: i) the
+atomic proposition pm is true when any robot is located in
+m
+region lm , and false otherwise; ii) the atomic proposition li,w
+m
+is true iff action ai,w has been completed.
+To facilitate task allocation under temporal logic constraints,
+a task model is introduced to explicitly capture the relationships among subtasks, actions, and workspace information.
+This abstraction provides a unified representation for subsequent task allocation.
+Definition 2 (Task Model). The task model is defined as
+T M = (Q, A, W, LA, LC, LW), where Q := {qi } ∪ {εq }
+is the set of subtasks and εq is the null subtask; A := {am
+i,w |
+m ∈ [M ], i ∈ [nt ], w ∈ [|Ri |]} ∪ {εa }, where εa is the
+empty action. For notational simplicity, an action in A can
+
+be written as aj , where j is the index. W is the workspace;
+LA : Q → 2A associates each subtask with a set of actions,
+i.e., LA(qi ) ⊆ A; LC : A → R≥0 indicates the cost required
+to execute an action; and LW : A → W specifies the target
+region for an action (excluding εa ).
+Given workspace W and NBA B corresponding to the
+LTL-specified global task φ, the plan for robot rk is defined
+as a subtask-action-time sequence Πk = Π0,k Π1,k · · · Πhk ,k ,
+where each entry Πi,k is a subtask-action-time tuple associated
+with robot rk , and hk denotes the length of the plan. More
+specifically, Πi,k = (qi , ai , ti,k ), where qi ∈ Q, ai ∈ LA(qi ),
+and ti,k denote the assigned subtask, the corresponding action,
+and the action start time of the i-th entry in the plan of robot
+rk , respectively. In particular, the action of Π0,k is εa and the
+subtask is εq . To simplify notation, we use Πi,k (q) to denote
+the subtask component of Πi,k and Πi,k (a) to denote its action
+component in the remainder of this paper.
+Example 1. Consider a heterogeneous robot group R =
+{r1 , r2 , r3 , r4 }, including two type-1 (e.g., inspection) and
+two type-2 (e.g., maintenance and manipulation) robots, performing distributed tasks in a large-scale industrial park. The
+target regions are L = {l1 , l2 , l3 , l4 }. The task requires two
+type-1 robots to go to l1 for a joint inspection of an abnormal
+facility status, and one type-2 robot must travel to a local
+service station at l2 to perform an on-site handling operation.
+In addition, one type-1 and one type-2 robot must go to l3
+for a coordinated repair task. During this coordinated-repair
+period, no robot may pass through region l4 , which represents
+a hazardous area. Let p4 denote the atomic proposition that
+any robot enters region l4 . The task can be described by the
+following sc-LTL formula.
+1
+2
+3
+3
+φ = ♢l1,2
+∧ ♢l2,1
+∧ ♢(l1,1
+∧ l2,1
+∧ ¬p4 )
+
+(1)
+
+Based on the above, the problem studied in this work is
+described as follows.
+Problem 1. Given a global sc-LTL task specification φ,
+workspace W, and a team of heterogeneous robots R, the goal
+is to develop a distributed task allocation and coordination
+strategy under limited communication range. Specifically, the
+strategy should generate a plan Πk for each robot rk ∈ R and
+sustain task coordination during execution despite incomplete
+and delayed information. Let Π := {Πk }rk ∈R denote the
+collection of local plans. The objective is that Π satisfies task
+φ. The following assumptions are made.
+i) a robot can determine whether the task at a target region
+has been completed upon arrival;
+ii) any robot within the broadcast range of a sender (another
+robot) will instantly receive its messages;
+iii) the robot team contains sufficient robots.
+IV. FRAMEWORK OVERVIEW
+As shown in Fig. 1, the proposed framework consists of
+two parts: task preprocessing and distributed allocation with
+resilient task coordination.
+In the task preprocessing part, the global sc-LTL specification is first translated into an NBA. The automaton is then
+
+4
+
+Fig. 1. Framework of the method. The framework consists of two stages: task preprocessing and distributed task allocation with resilient task coordination.
+
+pruned by removing infeasible and decomposable transitions,
+and the resulting pruned automaton is further decomposed into
+executable subtasks together with their temporal dependencies.
+In the second part, robots first generate initial plans through
+the consensus-based timetable algorithm (CBTA), which allocates optional subtasks. Since communication is limited,
+each robot maintains and broadcasts not only its own task
+state but also the peer information it has received. Based on
+the locally information, robots maintain their local views of
+subtask progress and update their ordinary local plans through
+an event-triggered replanning mechanism.This mechanism is
+used only for online adaption outside the free market.
+For collaborative subtasks, the first robot arriving at the
+target region acts as a temporary leader to coordinate team formation and synchronize task execution. If all required robots
+arrive within the collaboration waiting time, the leader broadcasts a start signal and the collaborative subtask proceeds as
+planned. Otherwise, timeout-triggered recruitment is activated.
+The leader first attempts local recovery by recruiting available
+and type-compatible robots that are reachable through direct
+or multi-hop communication. If local recovery is insufficient, a
+recruiter may be dispatched to the free market. If the required
+team still cannot be formed within the prescribed coordination
+horizon, the leader declares the collaborative subtask failed,
+and the failed subtask will be handled through free-marketbased reassignment.
+In addition, when a robot cannot confirm that the temporal
+prerequisites of its pending subtasks have been satisfied, a
+patrol mechanism is activated to actively gather the missing
+task-state information.
+Overall, the framework starts from a global temporal logic
+task, derives distributed executable subtasks, generates initial
+plans, and then sustains task progress online through eventtriggered replanning, collaborative coordination, and patrolbased information gathering under limited communication.
+V. TASK PREPROCESSING
+To address Problem 1, we preprocess φ. As shown in Fig. 1,
+preprocessing has two phases: i) NBA pruning; and ii) task
+decomposition on the pruned NBA to obtain the subtask set
+Q and the temporal relations among subtasks.
+
+A. Pruning of NBA
+The LTL formula is first converted into an NBA B and
+then pruned to remove redundancies, yielding a simplified
+automaton B − . Specifically, there are two types of pruning:
+• Removal of infeasible transitions: removing transitions
+that cannot be realized, e.g., when the required number
+or types of robots exceed those available.
+• Elimination of decomposable transitions: Decomposable
+transitions are removed to improve task decomposition
+effectiveness [35].
+A decomposable transition is defined as follows.
+Definition 3 (Decomposable Transition). In NBA B, a transition from state si to sj is called decomposable if there
+exists another state sk such that, for any σik , σkj ⊆ Σ
+satisfying sk ∈ δ(si , σik ) and sj ∈ δ(sk , σkj ), it holds that
+sj ∈ δ(si , σik ∪ σkj ).
+Lemma 1: For any feasible word w accepted by B, there
+exists a corresponding word w′ accepted by B − .
+Proof : Consider an accepted word w = · · · σn · · · with
+accepting run ρ = · · · si sj · · · in B, where sj ∈ δ(si , σn ).
+The first pruning step removes only infeasible transitions, so
+every feasible accepted word is preserved. For the second
+pruning step, consider two cases. For Case 1, if ρ contains
+no decomposable transitions, then all transitions of ρ remain
+in B − ; hence ρ is also an accepting run in B − and we can
+set w′ = w. For Case 2, if a transition from si to sj is
+removed as decomposable, there exists a state sk and labels
+σik , σkj such that sk ∈ δ(si , σik ), sj ∈ δ(sk , σkj ), and
+σik ∪ σkj = σn . Therefore, the transition si → sj can be
+replaced by two transitions, si → sk and sk → sj . If both
+transitions si → sk and sk → sj are non-decomposable,
+this reduces to Case 1. Otherwise, the same decomposition
+argument is applied recursively. Because a transition cannot
+be decomposed indefinitely into realizable finite expressions,
+this recursive process terminates. The final constructed run has
+no decomposable transitions, so it reduces to Case 1 and is
+accepted by B − .
+B. Task Decomposition
+Following [36], B − is decomposed into subtasks and a
+relaxed partial order is extracted. A depth-first search on
+
+5
+
+B − generates an accepting path and its corresponding task
+sequence. Starting from this ordered sequence, subtasks are
+iteratively swapped and each new path is checked for acceptability. This process relaxes unnecessary temporal constraints
+and yields a logically consistent subtask set that supports
+parallel execution, together with a relaxed partial order.
+Example 2. For the task in Example 1, the subtask
+set corresponding to φ is given by Ωφ = {q1 , q2 , q3 },
+1
+2
+where q1 = {1, {l1,2
+}, {}}, q2 = {2, {l2,1
+}, {}}, q3 =
+3
+3
+{3, {l1,1 , l2,1 }, {p4 }}. Each subtask is represented by three
+entries: the first entry (e.g., 1, 2, 3) is the subtask index, the
+second set contains the actions to be executed, and the third
+set contains atomic propositions required on the self-loop.
+VI. DISTRIBUTED ALLOCATION WITH RESILIENT
+TASK COORDINATION
+This section describes how feasible plans are generated under limited communication, and how these plans are executed
+under limited communication range.
+A. Consensus-based Timetable Algorithm
+To prevent robots from violating temporal logic constraints,
+the optional subtask set Ok (τn ) for robot rk is defined.
+Definition 4 (Optional Subtask Set). At time τn , the optional
+subtask set Ok (τn ) for robot rk includes all subtasks qi ∈ Q
+that satisfy: i) the numbers or types of robots committed to qi
+have not yet met the task requirements; ii) rk is unassigned
+and capable of qi ; iii) temporal constraints are satisfied.
+Note that robots committed to qi include those traveling to,
+waiting in, or executing the subtask at the target region. To
+reduce failures in collaborative subtasks, a robot commits only
+when its currently available information indicates that enough
+planned participants, in both number and required types, are
+already allocated to that subtask.
+Allocation within Ok (τn ) is performed using CBTA [5],
+which can efficiently allocate tasks by iterative timetable
+construction and consensus-reaching among robots. The cost
+of the current plan for robot rk , i.e., the plan completion time,
+is defined below.
+Cost(Πk (τn )) = thk (τn ),k − t0,k + LC(Πhk (τn ),k (a))
+
+(2)
+
+Here, hk (τn ) is the current plan length of robot rk at time
+τn ; thk (τn ),k is the start time of the last action in Πk (τn );
+t0,k is the start time of the plan; and LC(Πhk (τn ),k (a)) is
+the execution cost of the last action. For each qi ∈ Ok (τn )
+and action aj ∈ LA(qi ), candidate insertion positions after
+Π0,k (τn ) are evaluated by minimizing marginal cost, where
+Π0,k (τn ) is the initial tuple of the plan for robot rk at time
+τn . The time component ti,k ∈ Πi,k (τn ) is defined below.
+
+d
+
+t0,k + tleft,k + i,k ,
+if i = 1
+vk
+(3)
+ti,k =
+d
+
+ti−1,k + LC(Πi−1,k (a)) + i−1,i , otherwise
+vk
+where tleft,k is the remaining time for the current subtask; di,k is the distance from xk (τn ) to the target region
+
+of Πi−1,k (q); and di−1,i is the distance between the target regions of Πi−1,k (q) and Πi,k (q). To enforce robotquantity
+P requirements, Eq. (2) is augmented with a penalty
+M i∈[hk (τn )] nreq (Πi,k (q)), where nreq (Πi,k (q)) is the number of robots required to accomplish subtask Πi,k (q) and M
+is a large constant.
+Assume that Pk (τn ) is the set of plans received by robot rk
+at time τn . Task-allocation conflicts are then resolved based
+on these shared plans as follows. For each candidate subtask
+qi ∈ Ok (τn ) and each action aj ∈ LA(qi ), robot rk first
+counts the number of robots currently assigned to execute
+aj according to Pk (τn ). Let nkreq (aj ) denote the number of
+robots that rk estimates to be required for aj . If the number of
+assigned robots exceeds nkreq (aj ), an over-assignment conflict
+is detected. In this case, only the first nkreq (aj ) robots with the
+earliest expected action start times are retained. Otherwise, no
+task-allocation conflict is identified, and all currently assigned
+robots are retained. See [5] for algorithmic details.
+Example 3. For robot r1 in Example 1, suppose its optional
+subtask set is O1 (τn ) = {q1 , q3 } and the initial plan is
+Π1 (τn ) = (εq , εa , τn ), where εq and εa denote empty subtask
+and action, respectively. The actions of robot r1 for q1 and q3
+are a11,2 and a31,1 with LC(a11,2 ) = 2.6 and LC(a31,1 ) = 2.5,
+where 2.6 and 2.5 denote the time required to complete
+the corresponding actions. First, a11,2 is inserted; at this
+stage it can only be placed after Π0,1 , yielding Π1 (τn ) =
+(εq , εa , τn )(q1 , a11,2 , τn + 5.2). After that, a31,1 is inserted; at
+this stage, it can be inserted either between Π0,1 and Π1,1
+or after Π1,1 , and the corresponding marginal costs are 16.7
+and 7.9, respectively. Then, Π1 (τn ) is further updated to
+(εq , εa , τn )(q1 , a11,2 , τn + 5.2)(q3 , a31,1 , τn + 13.2).
+B. Event-Triggered Replanning Mechanism
+The replanning mechanism described in this subsection is
+the CBTA-based update of local plans during online execution.
+It is used to revise ordinary local task assignments when
+newly received information changes a robot’s view of the
+current task state. This mechanism is distinct from the freemarket reassignment process for failed collaborative subtasks.
+In particular, CBTA replanning is used for online adaptation
+outside the free market, whereas once a robot enters the free
+market, failed collaborative subtasks are handled by the free
+market-based reassignment mechanism.
+During execution, each robot rk maintains and periodically broadcasts a robot-state information set Sk (τn ), which
+records the information collected by rk at time τn . In
+particular, each robot broadcasts not only its own state
+but also the peer states it has received, thereby enabling
+multi-hop information propagation. The robot-state information set is defined as Sk (τn ) = {Sm|k (τn ) | rm ∈
+R, m ̸= k}. Each element Sm|k (τn ) is defined as follows:
+m
+Sm|k (τn ) = {τm , qm , am , tm
+a , ts , xm (τn ), Πm (τn )}. Here,
+Sm|k (τn ) records the latest status of robot rm as received by
+rk at time τn . Specifically, τm is the generation timestamp of
+the latest status message from rm ; qm is the subtask currently
+committed by rm ; am ∈ LA(qm ) is the concrete action role
+undertaken by rm for qm ; tm
+a is the estimated remaining travel
+
+6
+
+time from the current estimated position of rm to the target
+region of qm ; and tm
+s is the estimated task start time. Let
+Am denote the set of estimated arrival times of other robots
+assigned to the same task region. Then tm
+s is defined as the
+difference between the estimated arrival time of rm itself and
+the nreq (am )-th smallest element in Am , and is always nonnegative. In addition, xm (τn ) denotes the position of rm at
+time τn , and Πm (τn ) denotes the plan of rm at time τn .
+To reduce unnecessary computation under limited communication, CBTA replanning is triggered only by events
+that update a robot’s local task view or indicate changes in
+task-execution status. Specifically, these events include the
+reception of task-state information with newer timestamps,
+completion or failure of the robot’s current subtask, taskallocation conflicts, and failure inference for non-collaborative
+subtasks, as illustrated in Fig.2.
+1) Conflict-Triggered Replanning: During execution, limited communication may lead to task conflicts. To address this,
+a conflict-triggered replanning mechanism is introduced.
+Each robot classifies subtasks into three categories at time
+τn : i) unassigned subtasks, whose currently committed robots
+are still insufficient in number or type, so additional robots
+may still join; ii) completed subtasks, whose required actions have already been executed and therefore no longer
+require allocation; and iii) confirmed subtasks, whose current
+commitments have been verified to satisfy all participation
+requirements and are thus ready for execution or are already
+k
+k
+(τn ) and Talready
+(τn ) denote the
+under execution. Let Tnot
+unassigned-subtask set and completed-subtask set maintained
+by robot rk , respectively. During communication, robots exchange these sets and merge newly received updates. In this
+way, the optional subtask set is maintained online and remains
+consistent with the latest distributed task state.
+Based on the robot-state information set Sk (τn ), the
+k
+(τn ), and the completed-subtask
+unassigned-subtask set Tnot
+k
+set Talready (τn ), robot rk periodically checks for conflicts
+while executing aj ∈ LA(qi ). Two types of conflicts are
+considered. i) Conflict caused by task completion: At each
+k
+check, rk verifies whether qi has entered Talready
+(τn ). If
+so, the current commitment is immediately invalidated, since
+further motion for qi is redundant and may delay other pending
+tasks. Robot rk then stops and replans. ii) Over-assignment:
+If the number of robots committed to aj exceeds the required
+cardinality nreq (aj ), robot rk ranks all committed robots by
+their remaining travel time to the target region, with smaller
+tm
+a taking higher priority, and keeps only the first nreq (aj )
+robots as valid executors of aj . If multiple robots have the
+same tm
+a , ties are broken by robot ID in ascending order. If
+rk is not selected after this filtering step, it immediately stops
+the current commitment and replans.
+2) Replanning for Non-Collaborative Subtasks: This replanning is applied only to non-collaborative subtasks, because
+collaborative subtasks are handled by a dedicated resilient
+task coordination mechanism. For a non-collaborative subtask,
+the assigned robot may become unavailable during execution
+because of faults or other unexpected events and may therefore
+fail to complete the subtask. Under limited communication,
+other robots cannot directly distinguish such execution failure
+
+Fig. 2. Schematic illustration of the event-triggered replanning mechanism
+
+from delayed or incomplete information propagation. Therefore, each robot applies a timeout-based rule to assess whether
+the corresponding task-state record remains valid and, if
+necessary, triggers CBTA-based replanning.
+Even for non-collaborative subtasks, delayed and incomplete information propagation may cause the same subtask to
+be assigned to multiple robots. Let Hk (qm ) = {h | Sh|k (τn ) ∈
+Sk (τn ), qh = qm } denote the robot-index set induced by the
+state records in Sk (τn ), where qh is the subtask component in
+Sh|k (τn ). For each h ∈ Hk (qm ), robot rk computes a timeout
+k,h
+candidate Tlate
+by Eq. (5) and uses the largest one as the expiry
+threshold for qm . The expiry threshold is defined below.
+k
+Tlate
+(qm ) =
+
+max
+h∈Hk (qm )
+
+k,h
+Tlate
+.
+
+The timeout candidate is defined below.
+
+
+
+
+
+1
+dk,h
+k,h
+max Tenc ,
+Tlate
+= αlate 1 +
+D
+fcom
+h
++ ts + max LC(ai )
+
+(4)
+
+(5)
+
+ai ∈LA(qm )
+
+The average encounter time is defined below.
+Tenc =
+
+1
+4Dva ρr
+
+(6)
+
+where αlate is a tuning parameter. In this paper, αlate is set
+to 2.5 based on experimental results. The value is chosen to
+be greater than 1 so that the practical information expiration
+time remains above its theoretical estimate. dk,h denotes the
+distance between robot rk ’s current position and robot rh ’s
+estimated position. The position of rh is estimated based on
+its last known position xh at the most recent communication
+time, together with its task plan. The estimation is carried
+out as follows: the current time is compared with the subtask
+start time in the plan to determine which task the robot is
+executing. If the current time exceeds the planned completion
+time of that task, the robot is considered to be in the free
+market. Otherwise, the robot is assumed to move at a constant
+speed along a straight line between task points, and its current
+position is estimated accordingly. Tenc denotes the average
+encounter time [37], where va is the average speed of robots
+and ρr is the robot density. Specifically, if current time τnow
+k
+satisfies τnow −τm > Tlate
+(qm ), robot rk treats the state record
+of robot rm for subtask qm as outdated. If robot rk is capable
+of executing the corresponding action, qm is non-collaborative,
+and qm ̸= qk , then robot rk triggers CBTA-based replanning,
+after which the updated local plan may take over qm . Here,
+
+7
+
+k
+τm is the timestamp of the stored state record, and Tlate
+(qm )
+is the expiry threshold adopted by robot rk for subtask qm .
+Note that the event-triggered CBTA replanning mechanism
+is applied only outside the free market. Once a robot enters
+the free market, failed collaborative subtasks are no longer
+handled through CBTA-based local plan updates, but through
+the dedicated free-market reassignment mechanism.
+
+C. Collaborative Subtask Coordination
+1) Free Market: The free market is a designated rendezvous
+region used for global information synchronization and failedsubtask reassignment. A robot enters this region in one of
+three situations: it has no executable pending subtask unless
+all subtasks have already been completed, its assigned optional subtask cannot proceed because of failure or missing
+collaborators, or it is explicitly dispatched by a leader as an
+emergency recruiter. Robots broadcast the ID set of robots
+currently in the free market, denoted by Rf , along with the
+corresponding timestamp. Upon receiving this information,
+each robot updates its locally maintained free-market ID set
+Rf using the newest timestamp.
+The free-market location is computed by entropy-based
+weighting of subtask information. For each subtask qi ∈ Q,
+two indicators are considered: the required robot count Ni and
+the number of successor subtasks Nsuc,i . Their normalized
+forms are denoted by νi,1 and νi,2 , respectively. They are
+defined below.
+Nsuc,i
+Ni
+,
+νi,2 = P
+.
+(7)
+νi,1 = P
+qj ∈Q Nj
+qj ∈Q Nsuc,j
+The entropy weight of indicator k is denoted by wk , where
+k = 1 corresponds to the normalized required robot count and
+k = 2 corresponds to the normalized successor count. The
+normalized entropy ek is defined below.
+1 X
+ek = −
+νi,k ln νi,k ,
+k ∈ {1, 2},
+(8)
+ln |Q|
+qi ∈Q
+
+The entropy weight wk is defined below.
+wk = P2
+
+1 − ek
+
+m=1 (1
+
+− em )
+
+,
+
+k ∈ {1, 2}.
+
+(9)
+
+Here, |Q| isPthe number of subtasks, and the denominator
+2
+ensures that k=1 wk = 1. The entropy-weighted importance
+of subtask qi is defined below.
+si = w1 νi,1 + w2 νi,2 ,
+Its normalized score is defined below.
+si
+s̄i = P
+.
+qj ∈Q sj
+
+(10)
+
+(11)
+
+Here, si is the unnormalized importance score of subtask qi ,
+and
+P s̄i is its normalized score. This normalization ensures that
+qi ∈Q s̄i = 1, so s̄i can be directly used as a weight in center
+computation. Let xi denote the geometric center of the region
+associated with subtask qi . The center of the free market is
+defined below.
+X
+xfree =
+s̄i xi .
+(12)
+qi ∈Q
+
+This expression is a weighted average of subtask-region centers. A larger value of s̄i means that subtask qi has a stronger
+influence on xfree . If xfree lies in a forbidden region or outside
+the workspace, the final free-market location is set to the
+nearest feasible point. In this work, a robot is regarded as
+having arrived at the free market when it reaches a feasible
+point that is as close as possible to the free-market center
+and lies within the communication range of at least one robot
+already in the free market, if such a robot exists.
+2) Leader-based Collaborative Subtask Coordination: For
+collaborative subtasks, robots adopt a leader-based coordination strategy. One robot serves as a temporary leader to
+collect arrival information, synchronize decisions, and issue
+recruitment actions. Compared with fully leaderless coordination, this design reduces negotiation overhead and decision
+inconsistency, thereby improving coordination efficiency and
+execution robustness.
+Algorithm 1 Timeout-Triggered Recruitment
+1: Input: collaborative subtask qc , arrived-robot set Rarr ,
+leader state-record set Sl (τn ), free-market location xfree ,
+free-market robot set Rf , reachable robot set Rb
+2: if |Rarr | < nreq (qc ) then
+3:
+Construct Rlfit from robots in Rb that are available and
+type-compatible with the missing roles of qc .
+4:
+if |Rarr ∪ Rlfit | ≥ nreq (qc ) then
+5:
+Recruit the required robots from Rlfit .
+6:
+Update Twait via Eq. (13).
+7:
+if waiting time t < Twait then
+8:
+Leader rl broadcasts a start signal for subtask qc .
+9:
+else
+10:
+Leader rl announces failure of subtask qc .
+11:
+end if
+12:
+end if
+13:
+Construct Rffit from robots in Rf that are typecompatible with the remaining missing roles of qc .
+14:
+if |Rarr ∪ Rlfit ∪ Rffit | < nreq (qc ) then
+15:
+Leader rl announces failure of subtask qc .
+16:
+end if
+17:
+Extract {xp (τn ) | rp ∈ Rarr } from Sl (τn ).
+18:
+rp ← arg minrp ∈Rarr d(xp (τn ), xfree )
+19:
+Recruit robots in Rlfit and dispatch rp to the free market.
+p
+20:
+Compute timeout Tleave
+via Eq. (15).
+21:
+if recruitment succeeds then
+22:
+Leader rl broadcasts a start signal for subtask qc .
+p
+23:
+else if waiting time t ≥ Tleave
+or recruitment fails then
+24:
+Leader rl announces failure of subtask qc .
+25:
+end if
+26: end if
+Upon arriving at a subtask region, robot rk broadcasts
+an arrival signal ek = {tke , qk , ak }, where tke is the arrival
+timestamp at the task region, and qk and ak denote the current
+subtask and the action performed by rk , respectively. The
+robot that arrives first at the task region is selected as leader
+rl to prevent conflicts caused by asynchronous arrivals. Let
+qc denote the collaborative subtask currently coordinated by
+leader rl . If the number of robots that arrive within the collab-
+
+8
+
+oration waiting time Twait satisfies the requirement of qc , the
+leader broadcasts a start signal and the robots begin executing
+the collaborative subtask. Otherwise, once the waiting time
+exceeds Twait , timeout-triggered recruitment is initiated.
+The collaboration waiting time Twait is dynamically determined using leader rl ’s robot-state information set Sl (τn ). It
+is defined below in terms of the earliest arrival time Tearly and
+the latest arrival time Tlate .
+
+
+nreq (qc )
+(Tlate − Tearly )
+(13)
+Twait = 1 + βw max
+nreq
+where βw is an adjustment coefficient. In this paper, βw is
+set to 1.25 based on experiments. Here, nreq (qc ) denotes
+the number of robots required for subtask qc , and nmax
+req =
+maxqj ∈Q nreq (qj ) denotes the maximum robot requirement
+across all subtasks. This design uses the arrival-time spread
+(Tlate − Tearly ) as the baseline waiting window and scales it
+by nreq (qc )/nmax
+req , so subtasks requiring more robots are given
+a proportionally longer waiting time to improve collaboration
+success while avoiding excessive delay for smaller teams. The
+rationale is that larger teams are harder to synchronize under
+limited communication: more robots imply greater arrival-time
+variability, so the probability that all required robots arrive
+within a short window is lower.
+When leader rl observes that the collaboration waiting
+time has reached Twait and the number of arrived robots is
+still below the required cardinality for qc , timeout-triggered
+recruitment is activated. The procedure is summarized in
+Algorithm 1. The leader first performs local recovery. It
+scans the reachable robot set Rb , which consists of robots
+currently discoverable by rl through direct links or multi-hop
+relays, and extracts robots that are both available and typecompatible with the missing roles of qc . Here, available robots
+are those that are not executing other subtasks, are not already
+committed to recruitment, and have not been recruited by other
+robots. This locally feasible set is denoted by Rlfit . If the
+union of Rarr and Rlfit is sufficient to satisfy the requirement
+of qc , the leader recruits the required robots from Rlfit . The
+recruitment message includes the subtask ID of qc , missing
+number and type requirements, and publication timestamp τn .
+During recruitment, leader rl broadcasts recruitment messages and follows a first-come-first-served strategy among
+received bids. Bidder rb ∈ Rlfit applies according to message
+publication time. Upon receiving a bid from robot rb ∈ Rlfit ,
+leader rl sends a lock request Illock = {qc , IDb } to rb , where
+IDb is the ID of rb . The unlocked bidder rb replies with
+Ibagree = {qc , IDb } and becomes locked. After successful
+recruitment, rl broadcasts Ilfinish = {qc }, and the locked robots
+proceed to qc . Leader rl continues broadcasting recruitment
+messages until the required robots are obtained or the recruitment exceeds Tbid . The collaboration waiting time Twait is
+then updated according to the predicted arrival times of the
+recruited robots. If the updated waiting bound is still exceeded
+before team formation is completed, the leader declares the
+subtask failed. The bidding timeout Tbid is defined below.
+Tbid = |R|
+
+1
+Nround + tcomp ,
+fcom
+
+(14)
+
+where |R| is the total number of robots, Nround is the number
+of recruiter–bidder message rounds required by the recruitment
+process, and tcomp is the computation time. In this paper,
+Nround is set to 5 and tcomp is set to 2.0 s.
+If local recovery is insufficient, the leader expands the
+search to the free market. It first constructs a backup candidate
+set Rffit from robots in Rf whose capabilities match the
+remaining missing roles of qc . If the union of the arrived
+robots Rarr , the locally reachable candidates Rlfit , and the
+free-market candidates Rffit is still insufficient, the subtask is
+immediately treated as failed. Otherwise, the leader selects a
+recruiter rp from the arrived robots according to
+rp = arg min d(xr (τn ), xfree ),
+r∈Rarr
+
+where xr (τn ) is the position of robot r recorded in Sl (τn ).
+The recruitment procedure executed by recruiter rp in the free
+market is the same as that used by leader rl . Leader rl declares
+p
+subtask failure if recruitment is unsuccessful within Tleave
+. The
+leave timeout is defined below.
+
+
+
+2dleave
+dleave
+p
++ Tbid
+(15)
+Tleave = 1 + ζ
+dmax
+vp
+where dmax is the maximum inter-target-region distance, and
+ζ is an adjustment coefficient. Based on experiments, ζ is set
+to 0.75 in this paper. dleave denotes the distance from recruiter
+p
+rp to the free market. By adapting Tleave
+to travel distance, the
+leader avoids declaring failure too early for distant recruiters
+and avoids excessive waiting for nearby recruiters. The first
+term in Eq. (15) estimates the round-trip travel time between
+the subtask region and the free market, while Tbid reserves
+time for recruitment in the market.
+p
+If recruitment is still unsuccessful within Tleave
+, subtask qc
+is declared failed, and the leader notifies all robots currently
+executing qc . Failed subtasks are added to each robot’s failedsubtask set and are temporarily skipped until robots enter the
+free market.
+3) Failure Handling for Collaborative Subtasks: Failed
+collaborative subtasks are handled through free-market-based
+reassignment. Notably, the communication network among
+robots in the free market is assumed to be connected. Once
+a robot enters the free market, failed subtasks are reallocated
+through a recruiter–bidder mechanism after state information
+is synchronized, enabling robots to recover from collaboration
+failures using updated information.
+When robot rk finds that its current optional-subtask set
+contains only failed subtasks, it enters the free market for
+reassignment. After arriving at the free market, rk first synchronizes recruitment messages and state information, and
+then checks whether it can serve as a recruiter. Let Fk
+denote the failed-subtask set maintained by rk . Let Rrec
+denote the current recruiter set in the free market, and let
+R<
+k ⊆ Rrec denote the recruiters that published earlier than
+rk . Robot rk becomes a recruiter only if it has not received
+any valid recruitment message for a compatible subtask. In that
+case, it selects one failed subtask from Fk according to the
+shortfall-and-distance rule and publishes recruitment message
+for subtask.
+
+9
+
+Let nkrem (t, j) represent the remaining number of typej robots that are available to recruiter rk at time t after
+accounting for earlier recruitment requests. For each failed
+subtask
+q ∈ Fk , the shortfall is defined
+below. ∆(q) =
+
+P
+k
+j∈T max 0, nreq (q, j) − nrem (t, j) . Recruiter rk then selects the failed subtask with the minimum shortfall. The
+selected subtask is defined below.
+qk∗ = arg min ∆(q).
+q∈Fk
+
+(16)
+
+If multiple candidates share the same minimum shortfall, rk
+selects the one whose target region is nearest. After determining the subtask to be handled first, rk publishes a recruitment
+message Ikbid = {τk , rk , qk∗ , ηk }. Here, τk is the publishing
+time, and ηk is the type-cardinality requirement vector of the
+recruitment message.
+After recruitment messages are published, any robot in the
+free market that is not acting as a recruiter is treated as a
+bidder. Bidder rc selects a recruitment message according to
+task priority and message publishing time. Let Mc (τn ) be
+the set of active recruitment messages received by bidder
+rc at time τn . The compatible message set is defined as
+(τn ) = Ikbid ∈ Mc (τn ) rc is compatible with qk∗ .
+Mcom
+c
+For each message Ikbid , let ρ(qk∗ ) denote the priority rank
+of subtask qk∗ , where a smaller value means higher priority. The bidder-selected recruitment message is defined as
+∗
+I∗c = arg minIkbid ∈Mcom
+(τn ) ρ(qk ), τk , where minimization is
+c
+lexicographic: bidders first select the highest-priority subtask,
+and among subtasks with the same priority, they choose the
+earliest published recruitment message. In this paper, highpriority subtasks refer to emergency subtasks issued by leaderdispatched recruiters, whereas low-priority subtasks refer to
+failed or currently unassigned subtasks handled through freemarket reassignment.
+During recruitment, recruiter rk may receive a compatible
+recruitment message Ihbid and become a potential bidder. If the
+currently available free-market robots are insufficient to satisfy
+both recruitments simultaneously, rk compares (ρ(qh∗ ), τh )
+with (ρ(qk∗ ), τk ). If ρ(qh∗ ) < ρ(qk∗ ), or if ρ(qh∗ ) = ρ(qk∗ ) and
+τh < τk , then rk relinquishes its recruiter role, cancels its own
+recruitment, and switches to bidder mode for Ihbid .
+Recruiter rk follows the same first-come-first-served rule
+described in Sec. VI-C2. Let Lk denote the bidder set currently
+locked by recruiter rk . Upon receiving a bid from robot rc ,
+recruiter rk sends a lock request Iklock = {qk∗ , IDc } to rc ,
+where qk∗ is the recruited subtask and IDc is the ID of rc . The
+uncommitted bidder rc replies with Icagree = {qk∗ , IDc } and
+becomes locked. Once recruitment is completed, rk broadcasts
+Ikfinish = {qk∗ }, and locked robots then proceed to execute qk∗ .
+A bidder is unlocked if it receives no message from recruiter
+rk within Tsend seconds, which indicates a presumed recruiter
+failure, or if a higher-priority subtask arrives. The unlocking
+timeout is defined below.
+
+
+
+1
+dc,k
+,
+(17)
+Tsend = 1 +
+D
+fcom
+where dc,k is the distance from bidder rc to recruiter rk , D is
+the communication range, and fcom is the communication fre-
+
+quency. In such cases, bidder rc transmits Icunlock = {qk∗ , IDc }
+to prompt rk to remove it from the locked-robot list Lk .
+D. Patrol Mechanism for Task Blocking
+Temporal logic constraints can cause blocking while robots
+wait for prerequisite subtasks to be confirmed. For example,
+if subtask “inspect Zone B” is constrained to start only after
+“verify tunnel entrance” is completed, a robot assigned to
+Zone B may remain idle when the completion message from
+the entrance team cannot be received in time under limited
+communication. To address this issue, a patrol mechanism is
+proposed to proactively gather and relay prerequisite status
+information, thereby releasing blocked subtasks earlier. Let
+Qk ⊆ Q denote the set of subtasks executable by robot rk .
+For each qi ∈ Qk , let Pi denote the prerequisite-subtask
+set of qi . For each prerequisite subtask qj ∈ Pi , robot rk
+maintains an estimated completion time t̂k (qj ). The estimate
+k,m
+in Sec. VI-B2.
+t̂k (qj ) is computed in the same form as Tlate
+For subtasks constrained only by “do not start before the
+prerequisite starts”, the same estimation logic is used, except
+that the prerequisite start time is estimated by subtracting the
+prerequisite execution duration from t̂k (qj ).
+A robot triggers the patrol mechanism only when two
+conditions are simultaneously satisfied: i) there is no currently
+unassigned optional subtask that can be executed immediately,
+and ii) for at least one pending subtask qi , the current time
+exceeds the latest estimated completion time of its prerequisites, i.e., τnow > maxqj ∈Pi t̂k (qj ). This means the robot has
+waited beyond the expected prerequisite completion horizon
+but still cannot confirm prerequisite satisfaction from local
+information. In this case, the robot starts patrol to actively
+collect missing status updates. The initial patrol targets include
+all regions associated with unresolved prerequisite subtasks
+and the free market. During patrol, the target set is refined
+as follows: i) remove regions whose prerequisites are already
+completed or reliably verified, ii) skip prerequisites whose
+successor subtasks have already started, iii) omit prerequisites
+whose own predecessor conditions are still unmet, and iv)
+update optional-subtask candidates and their estimated completion times using newly gathered information. Once at least
+one executable optional subtask is identified, the robot exits
+patrol and switches to task execution.
+After patrol, if the estimated completion time is updated,
+robots will re-patrol based on new timings; otherwise, robots
+will wait tp seconds before the next patrol. The patrol interval
+is defined below.
+!
+djf
++ max LC(aℓ )
+(18)
+tp = max max
+qi ∈Qk qj ∈Pi
+va aℓ ∈LA(qj )
+where djf is the free-market-to-subtask distance. tp assumes
+the subtask has failed and will be reassigned in the free market.
+VII. ALGORITHM ANALYSIS
+This section proves that, under the assumptions in Sec. III-B
+and a finite subtask set (i.e., |Q| < ∞), the proposed algorithm
+guarantees task completion.
+
+10
+
+Theorem 1: Completion of unfinished low-priority subtasks
+handled through free-market reassignment is guaranteed.
+Proof : Consider an unfinished low-priority subtask q. For
+each type index j ∈ T , let nreq (q, j) denote the required
+number of type-j robots, and let nfree (t′ , j) denote the number
+of type-j robots in the free market at time t′ . Take any robot
+rk that is capable of executing q. We first show that rk enters
+k
+the free market within a finite time Tbound
+. For q, rk falls
+into one of three cases: i) q ∈ Fk ; ii) the currently available
+teammates are insufficient; iii) q has been assigned to other
+robots. If q is non-collaborative, case iii) reduces to case
+k
+k
+max
+ii) after at most Tlate
+(q).
+ Tlate (q) ≤ Ttimeout ≤
+ Moreover,
+ d 
+1
+max
+max
+max
+max Tenc , fcom +ts +Ltask according
+αlate 1 + D
+to Eq. (5) and Eq. (4), where dmax is the maximum workspace
+distance, tmax
+is the latest estimated subtask start time in
+s
+Sk (τn ), and Lmax
+task = maxqj ∈Q maxai ∈LA(qj ) LC(ai ). Assume
+max,k
+that the maximum execution time of a subtask for rk is Ttask
+.
+The subtask execution time is finite, and co-safe LTL implies
+|Q| < ∞. Therefore, robot rk enters the free market within a
+finite time satisfying
+
+max,k
+k
+max
+Tbound
+≤ |Q| Ttask
++ Ttimeout
+.
+Now consider three cases for q. i) Recruitment proceeds
+without interruption by high-priority subtasks. According to
+assumption iii) and the condition that robots do not issue
+recruitment requests that exhaust free-market resources, all
+robots capable of q enter the free market within a finite time.
+Therefore, there exists a time t′ ∈ (t0 , ∞) such that
+∀j ∈ T ,
+
+nfree (t′ , j) ≥ nreq (q, j).
+
+Hence, q can be successfully allocated. ii) The recruitment process is interrupted by emergency-subtask recruitment. Since
+|Q| < ∞ and any departing robot rk is guaranteed to rejoin
+k
+, interruptions terminate in finite
+the free market within Tbound
+steps, which reduces to case i). iii) If q remains unposted, it
+is because all capable robots are already engaged in earlier
+recruitments. Since every existing recruitment falls into case
+i) or ii), q will eventually be posted. Hence, in all cases, q will
+eventually be posted and successfully allocated.
+Theorem 2: The proposed algorithm guarantees all subtasks
+will be completed under assumptions ii) and iii).
+Proof : The feasibility of CBTA is discussed in [5]. Under
+assumption iii), incomplete subtasks arise from: i) missing
+prerequisite subtask information, ii) insufficient teammates, or
+iii) expected robots fail to reach the target region. Case i)
+is resolved by the patrol mechanism. In cases ii) and iii),
+insufficient teammates and subtask failures eventually lead
+robots to enter the free market, since |Q| < ∞. By Theorem
+1, all subtasks will ultimately be completed.
+Theorem 3: The proposed algorithm is complete. That is,
+if there exists a feasible plan satisfying φ, then the proposed
+algorithm is guaranteed to find a plan that satisfies φ.
+Proof : The key idea in the proof is to first show that
+feasible words are preserved after automaton pruning and
+then use this fact to establish the existence of feasible paths,
+task allocations, and executable robot trajectories. The detailed
+proof follows the sequence of feasibility arguments for the
+
+DFS-based path search, the task decomposition, CBTA task
+allocation, and path planning for each assigned subtask.
+Specifically, the automaton pruning step removes only infeasible transitions, and by Lemma 1, any word accepted
+by the original NBA B has a corresponding word accepted
+by the pruned automaton B − . Therefore, feasible words are
+preserved. Next, since DFS is complete over finite graphs,
+an accepting path in B − will be discovered. The accepting
+path is then decomposed into a sequence of subtasks, which
+by construction respects the temporal ordering encoded in φ.
+Given the existence of a feasible path that satisfies all subtasks
+and sufficient time, the CBTA-based allocation procedure is
+guaranteed to find a feasible assignment.
+If a subtask execution fails, Theorems 1 and 2 ensure that
+the subtask can be reassigned and successfully executed by
+another robot, guaranteeing completion of the overall plan.
+During execution, feasible path planning for each assigned
+subtask exists, as all transitions in B − correspond to realizable
+motions in the workspace.
+VIII. RESULTS
+The algorithm is evaluated through simulations and physical
+experiments. LTL formulas are converted to NBAs using
+LTL2BA [38]. Simulations are run in Python 3 on an 11th
+Gen Intel® Core™ i7-11390H with 16 GB RAM. Physical
+experiments are conducted on Ubuntu 18.04 with ROS.
+A. Numerical Simulation
+We evaluate the proposed framework under communicationconstrained settings, with a focus on its effectiveness in
+handling task blocking, dynamic robot changes, collaborative
+coordination, and failure recovery. To this end, the proposed
+framework is examined through four test scenarios:
+i) Test 1 evaluates the patrol mechanism through an ablation
+study. For each instance, the patrol mechanism is enabled or
+disabled under the same task setting, while the communication
+range is varied to examine how efficiently blocked prerequisite
+subtasks are resolved and how this affects the final task
+completion rate.
+ii) Test 2 compares timeout-triggered recruitment with
+timeout-based local recruitment [33] under multiple communication ranges. This comparison is used to evaluate the impact
+of timeout-triggered recruitment on collaboration success and
+overall completion efficiency.
+iii) Test 3 evaluates free-market-based reassignment in preventing repeated subtask failures, using failure-to-tail reassignment as a baseline with D = 1.5 m. The goal is to examine
+whether free-market-based reassignment can reduce repeated
+failure chains and improve recovery stability under limited
+communication.
+iv) Test 4 evaluates the adaptability of the proposed framework to dynamic robot changes (e.g., robots joining or temporarily becoming unavailable during execution). We evaluate
+whether the framework can maintain feasible allocation updates and continue task progress without global replanning.
+The experimental setup consists of 12 target regions, denoted by L = {l1 , l2 , . . . , l12 }, and a 12-robot team comprising
+
+11
+
+three heterogeneous robot types: type-1, type-2, and type3. The spatial arrangement of regions and robot deployment
+follows Fig. 3. To evaluate robustness under different tasklocation assignments, we treat the region labels l1 ∼ l12 as
+permutable and generate 25 randomized benchmark instances
+(Inst. 1–Inst. 25) by varying the label-to-location mapping
+while keeping the underlying workspace geometry unchanged.
+
+Fig. 4. The results of Test 1. Left: task completion rates under different
+communication ranges. Right: simulation snapshots and explanation of the
+differences between Case 1 (with patrol) and Case 2 (without patrol).
+Fig. 3. Simulation environment for Tests 1–4. The 30 × 15 simulation
+environment contains 12 target regions l1 ∼ l12 and 12 robots r1 ∼ r12 .
+
+1) Test 1: Consider the LTL-specified global task φ =
+12
+12
+7
+12
+12
+6
+7
+2
+♢((l2,1
+∧l1,1
+)∧♢((l2,2
+∧¬(l2,1
+∧l1,1
+))∧♢(l2,1
+∧¬l2,2
+)))∧♢l3,1
+∧
+3
+9
+♢l3,1 ∧ ♢(l3,3 ∧ ¬p4 ). After preprocessing φ, the resulting
+subtask set is Ωφ = {q1 , q2 , q3 , q4 , q5 , q6 }, where q1 =
+9
+3
+2
+{1, {l3,3
+}, {p4 }}, q2 = {2, {l3,1
+}, {}}, q3 = {3, {l3,1
+}, {}},
+12 12
+7
+q4 = {4, {l2,1 , l1,1 }, {}}, q5 = {5, {l2,2 }, {}},q6 =
+6
+{6, {l2,1
+}, {}}. The objective of this experiment is to verify the
+causal role of the patrol mechanism in resolving task blocking
+under limited communication. To this end, we evaluate Inst. 1–
+Inst. 25 under two settings: Case 1 (with patrol) and Case 2
+(without patrol), while keeping task instances, robot settings,
+and communication ranges identical. The only difference is
+whether robots are allowed to proactively gather information.
+As shown in Fig. 4, when communication range decreases,
+Case 2 exhibits a significant decline in task completion rate
+because blocked robots cannot reliably obtain prerequisite
+updates and therefore remain in waiting states for long periods. Notably, Case 2 can still complete some instances at
+small communication ranges when a blocked robot happens
+to encounter another robot that already carries the required
+prerequisite information; however, this information-recovery
+path is opportunistic and unstable, and its success strongly
+depends on workspace geometry, robot trajectories, and taskregion distribution. In contrast, Case 1 maintains a 100%
+completion rate across all tested ranges: patrol converts passive
+waiting into active information acquisition, closes prerequisiteinformation gaps in a structured way, and enables blocked
+subtasks to be released in time without relying on chance
+encounters. These results highlight the key advantage of the
+patrol mechanism: it provides robust information recovery
+under communication constraints, rather than probabilistic
+recovery determined by incidental robot meetings.
+2) Test 2: Considering the same global task φ as in Test 1,
+we further evaluate timeout-triggered recruitment. Timeouttriggered recruitment (TTR) is compared with timeout-based
+local recruitment (TLR) [33]. The two methods differ only in
+how replacement candidates are searched after timeout: TLR
+selects from robots currently reachable by the leader (usually
+the nearest one), while TTR can dispatch a recruiter to the
+free market to obtain additional qualified robots outside the
+
+local communication neighborhood. In each run, one robot is
+randomly removed during execution of q1 to create the same
+failure trigger for both methods. Performance is measured by
+the completion time of type-3-related subtasks (T3-subtask
+time) under different communication ranges. We use this
+metric instead of total mission time because it directly captures
+recovery efficiency for the affected collaborative chain, while
+total mission time can be perturbed by unrelated subtasks.
+Fig. 5 and Table I show that TTR yields shorter T3subtask time in most instances, with the largest gains at
+small communication ranges. The reason is that, under sparse
+connectivity, TLR is constrained by local visibility and may
+not find a feasible replacement quickly, whereas TTR expands
+the search scope through the free market and therefore restores
+collaboration earlier. When communication range is large, the
+free market is effectively inside the connected neighborhood,
+so TTR and TLR have similar candidate sets and similar
+performance. The exceptions (e.g., Inst.2 and Inst.6) are also
+explainable: both methods behave similarly because q2 and
+q3 are far from initial robot positions and no suitable type3 robot is available in the free market at timeout; here
+the dominant bottleneck is temporary resource scarcity, not
+recruitment strategy. Overall, the experiment indicates that
+TTR improves robustness mainly by enlarging the effective
+replacement-search region under communication constraints.
+
+Fig. 5. Comparison between TTR(proposed) and TLR. The positive values
+indicating superior performance of TTR.
+
+12
+
+TABLE I
+T3- SUBTASK TIME GAP BETWEEN TTR AND TLR UNDER DIFFERENT COMMUNICATION RANGES . A LL TIME GAPS ARE IN SECONDS ( S ).
+D (m) Inst. 1 Inst. 2 Inst. 3 Inst. 4 Inst. 5 Inst. 6 Inst. 7 Inst. 8
+3
+11.29
+0.03
+19.56 27.82 16.75
+0.12
+16.22 52.07
+5
+16.26
+0.12
+27.73 37.31 24.61
+0.23
+15.48 10.20
+10
+26.13
+0.02
+0.00
+43.70
+0.11
+0.09
+0.00
+10.28
+Table I (continued)
+D (m) Inst. 14 Inst. 15 Inst. 16 Inst. 17 Inst. 18 Inst. 19 Inst. 20
+3
+20.43
+-0.19
+23.10
+18.41
+13.53
+0.32
+19.91
+5
+16.57
+-0.28
+17.49
+28.18
+14.14
+0.09
+16.11
+10
+23.12
+0.32
+6.74
+0.18
+-0.24
+0.27
+24.31
+
+Inst. 9 Inst. 10 Inst. 11 Inst. 12 Inst. 13
+21.69
+21.69
+0.32
+17.09
+36.36
+15.49
+15.49
+0.12
+0.32
+0.32
+27.52
+27.52
+0.22
+-0.25
+0.32
+Inst. 21 Inst. 22 Inst. 23 Inst. 24 Inst. 25
+26.17
+0.27
+16.93
+22.85
+0.12
+16.03
+-0.13
+27.78
+15.56
+0.09
+25.08
+-0.25
+-0.02
+26.04
+0.27
+
+Fig. 6. Comparison between FMR (proposed) and F2TR.
+
+Fig. 7. Schematic comparison of collaborative-failure handling processes in
+F2TR and the proposed method. Subfigures (a) and (b) illustrate the F2TR
+process, while (c) and (d) illustrate the process of the proposed method.
+
+3) Test 3: In scenarios with multiple collaborative subtasks
+under limited communication, repeated failures can propagate
+across temporally dependent tasks and substantially delay
+mission completion. This test evaluates whether free-marketbased reassignment (FMR) can reduce such cascading delays
+compared with failure-to-tail reassignment (F2TR), where
+each failed subtask is appended to the end of the local
+plan and retried later. The comparison is conducted over
+Inst. 1–Inst. 25 under D = 1.5 m, using task completion
+time as the primary metric. Consider the LTL-specified task
+11
+7
+2
+2
+9
+9
+φ1 = ♢l1,2
+∧ ♢l1,2
+∧ ♢l1,2
+∧ ♢((l2,1
+∧ ¬l2,2
+) ∧ ♢l2,2
+). Let Ωφ =
+2
+9
+{q1 , q2 , q3 , q4 , q5 }, where q1 = {1, {l2,1 }}, q2 = {2, {l2,2
+}},
+2
+7
+11
+q3 = {3, {l1,2 }}, q4 = {4, {l1,2 }}, and q5 = {5, {l1,2 }}. Five
+robots are deployed: r1 , r2 , r3 (type 1) and r4 , r5 (type 2).
+To trigger representative collaborative failures, one type-1
+robot is removed before the second (in execution order) type1 collaborative subtask is completed. This setting is critical
+because the team has minimal redundancy: a single removal
+can break feasibility of the current collaboration and force
+reallocation. Under F2TR, this often leads to deferral and
+repeated waiting in downstream subtasks. In contrast, FMR
+synchronizes failure information in the free market and reallocates with a wider, updated candidate set, which is expected to
+reduce repeated failures and shorten recovery latency. From a
+mechanism perspective, the key difference is whether recovery
+decisions are made with fragmented local views (F2TR) or
+with synchronized team-state information (FMR).
+As shown in Fig. 6, FMR generally outperforms F2TR
+across most instances, indicating that the benefit is systematic
+
+rather than case-specific. As shown in Fig. 7, the key reason
+is that, under dense collaborative dependencies and limited
+communication, a single failure often creates a “failure–
+delay–reassignment” loop: delayed recovery of one subtask
+postpones its successors, which increases the probability of additional waiting and repeated failures. F2TR tends to amplify
+this loop because failed subtasks are deferred to the tail and
+revisited with fragmented local information. In contrast, FMR
+interrupts the loop by synchronizing failure states in the free
+market and reallocating from a broader, updated candidate set,
+which shortens recovery latency and reduces repeated failure.
+The smaller gaps in instances such as Inst.3 and Inst.16
+are also informative: when spatial layout and timing naturally
+permit sufficient information exchange, even local-tail recovery can approach the performance of FMR. This suggests that
+FMR’s main advantage appears in communication-stressed
+or coordination-dense cases. Overall, the results support that
+FMR improves not only average completion efficiency but also
+resilience to chained collaborative-subtask disruptions.
+4) Test 4: At D = 10 m, with regions l1 ∼ l12 arranged
+as shown in Fig. 3, Test 4 evaluates the proposed framework
+under dynamic changes in team composition by introducing
+both robot addition and robot removal during task execution.
+At t = 15, a new type-3 robot, r13 , joins the system.
+After entering the communication range and synchronizing
+with the team, r13 is incorporated into the candidate set
+and assigned to subtask q2 . This online reallocation updates
+the task assignment according to the new team composition,
+thereby reducing the burden on the original team and yielding
+
+13
+
+a plan suited to the expanded set of available robots.
+Later, at t = 80, robot r10 is removed, leaving collaborative
+subtask q1 understaffed. In response, the leader robot r11
+keeps the remaining participants in a waiting state while
+checking whether the missing role can be filled locally. Once
+the waiting time exceeds Twait , r11 activates the timeout-based
+recovery mechanism and dispatches r9 as a recruiter to seek
+a qualified replacement. After recruitment succeeds, the team
+is re-formed, and q1 is eventually completed by r11 , r13 , and
+r9 , as shown in Fig. 8.
+From a process perspective, this scenario captures the full
+evolution from disturbance to response and eventual recovery.
+Specifically, the removal of r10 first introduces the risk of
+collaborative-subtask failure due to an insufficient number of
+participants for q1 ; the timeout-triggered recruitment mechanism then restores the required team size; and finally, task
+execution returns to a consistent and stable state. Therefore,
+the trajectory shown in Fig. 8 demonstrates not only successful
+task completion, but also the effectiveness of the proposed
+framework in supporting both collaborative-failure recovery
+and online task reallocation under dynamic team changes.
+
+is temporarily outside direct 2.0-meter communication range;
+nevertheless, team coordination is preserved through freemarket-mediated information exchange, so execution does not
+stall due to link interruption. Third, once the l3 -related subtask
+is confirmed complete, r2 transitions to l2 to execute the
+subsequent dependent task, showing that task handoff remains
+consistent even across intermittent connectivity. Overall, the
+physical experiment validates three key properties in combination: i) correctness of temporally constrained execution,
+ii) communication resilience via the free market under range
+limitations, and iii) continuity of distributed task progression
+without centralized global replanning.
+IX. CONCLUSIONS
+This paper presents a distributed task allocation framework
+with resilient task coordination for heterogeneous multi-robot
+systems under temporal logic and communication constraints.
+Starting from a global sc-LTL specification, the framework derives executable subtasks through automaton pruning and task
+decomposition, and generates initial plans using CBTA. To
+sustain task progress under limited communication, the framework incorporates two complementary coordination mechanisms: a patrol mechanism for resolving task blocking through
+active information gathering, and a coordination mechanism
+for collaborative subtasks that combines leader-based coordination, timeout-triggered recruitment, and free-market-based
+reassignment. Theoretical analysis establishes task-completion
+guarantees under the assumptions of this paper. Simulations
+on 25 benchmark instances and a physical experiment demonstrate that the proposed framework improves the robustness
+of distributed task coordination under incomplete and delayed
+team-state information.
+R EFERENCES
+
+Fig. 8. Task timelines in Test 4. Wide blocks denote subtasks, narrow colored
+blocks indicate waiting. Gray lines mean no subtask and not in the free market,
+and other colored lines represent traveling toward the target region.
+
+B. Physical Experiment
+Consider the environment depicted in Fig. 9(a), where l1
+denotes the sorting area, l2 the storage center, and l3 the monitoring room. Four robots of three distinct types operate with
+a 2.0-meter communication range. The mission specification
+2
+4
+1
+1
+2
+3
+2
+1
+∧ (¬l2,1
+U l1,1
+)∧
+∧ l3,1
+∧ l2,1
+) ∧ ♢l3,1
+∧ ♢l1,1
+∧ ♢l2,1
+φ = ♢(l1,1
+1
+1
+1
+3
+(¬l1,1 U (l1,1 ∧ l3,1 ∧ l2,1 )) requires one robot of each type
+(1, 2, and 3) to inspect, classify, and process goods in the
+sorting area l1 ; a type-3 robot to inspect the storage area l2 ;
+and, upon completion of the sorting tasks, a type-1 robot to
+report in the monitoring room l3 , after which a type-2 robot
+processes goods in the storage area l2 .
+Experimental results (Fig. 9) show that the proposed mechanisms are effective in a real communication-limited setting.
+First, the collaborative operation in l1 is completed before
+the dependent actions in l3 , which is consistent with the
+temporal-order constraints in φ and indicates that prerequisite
+information is propagated in time to avoid logical blocking.
+Second, after leaving l1 , robot r1 proceeds to l3 while r2
+
+[1] Y. Qu, B. Xin, Q. Wang, R. Li, and Z. Du, “A novel memetic algorithm
+for distributed shape formation of swarm robots with both acceleration
+and velocity constraints,” Science China Information Sciences, vol. 67,
+no. 12, p. 222201, 2024.
+[2] H. Fang, S. Wei, Y. Shi, and J. Ou, “Multi-agent ergodic surveillance
+under unknown target distribution,” Unmanned Systems, 2025, doi:
+10.1142/S2301385025440054.
+[3] L. Zhou, M. Jing, L. Zhong, Z. Yu, and X. Zeng, “Task-binding
+based branch-and-bound algorithm for noc mapping,” in 2012 IEEE
+International Symposium on Circuits and Systems (ISCAS). IEEE, 2012,
+pp. 648–651.
+[4] T. Okubo and M. Takahashi, “Simultaneous optimization of task allocation and path planning using mixed-integer programming for time and
+capacity constrained multi-agent pickup and delivery,” in 2022 22nd
+International Conference on Control, Automation and Systems (ICCAS).
+IEEE, 2022, pp. 1088–1093.
+[5] S. Wang, Y. Liu, Y. Qiu, and J. Zhou, “Consensus-based decentralized
+task allocation for multi-agent systems and simultaneous multi-agent
+tasks,” IEEE Robotics and Automation Letters, vol. 7, no. 4, pp. 12 593–
+12 600, 2022.
+[6] L. Govoni and A. Cristofaro, “A decentralized control and task allocation
+framework for heterogeneous redundant multiagent systems,” IEEE
+Transactions on Cybernetics, 2025.
+[7] Y. Wang, S. Ren, and C. Wang, “Multi-uav multi-task allocation based
+on cognitive state-based hybrid contract net protocol,” in 2025 10th
+International Conference on Computer and Communication System
+(ICCCS). IEEE, 2025, pp. 921–926.
+[8] A. Maoudj, B. Bouzouia, A. Hentout, A. Kouider, and R. Toumi,
+“Distributed multi-agent approach based on priority rules and genetic
+algorithm for tasks scheduling in multi-robot cells,” in IECON 201642nd Annual Conference of the IEEE Industrial Electronics Society.
+IEEE, 2016, pp. 692–697.
+
+14
+
+Fig. 9. The dashed lines indicate the robot trajectories. In (a), l1 to l3 represent the areas of interest. There are three kinds of robots: {r1 }, {r2 } and
+{r3 , r4 }. In (b)-(d), the robots are executing their subtasks.
+
+[9] J. Xie and C.-C. Liu, “Multi-agent systems and their applications,”
+Journal of International Council on Electrical Engineering, vol. 7, no. 1,
+pp. 188–197, 2017.
+[10] K. Leahy, D. Zhou, C.-I. Vasile, K. Oikonomopoulos, M. Schwager, and
+C. Belta, “Persistent surveillance for unmanned aerial vehicles subject to
+charging and temporal logic constraints,” Autonomous Robots, vol. 40,
+no. 8, pp. 1363–1378, 2016.
+[11] S. Xu, X. Luo, Y. Huang, L. Leng, R. Liu, and C. Liu, “Nl2hltl2plan:
+Scaling up natural language understanding for multi-robots through
+hierarchical temporal logic task specifications,” IEEE Robotics and
+Automation Letters, pp. 1–8, 2025.
+[12] C. Baier and J.-P. Katoen, Principles of model checking. MIT press,
+2008.
+[13] L. Li, Z. Chen, H. Wang, and Z. Kan, “Task allocation of heterogeneous
+robots under temporal logic specifications with inter-task constraints and
+variable capabilities,” IEEE Transactions on Automation Science and
+Engineering, 2025.
+[14] P. Yu and D. V. Dimarogonas, “Distributed motion coordination for
+multirobot systems under ltl specifications,” IEEE Transactions on
+Robotics, vol. 38, no. 2, pp. 1047–1062, 2021.
+[15] S. L. Smith, J. Tŭmová, C. Belta, and D. Rus, “Optimal path planning
+under temporal logic constraints,” in 2010 IEEE/RSJ International
+Conference on Intelligent Robots and Systems. IEEE, 2010, pp. 3288–
+3293.
+[16] A. Ulusoy, S. L. Smith, X. C. Ding, C. Belta, and D. Rus, “Optimality
+and robustness in multi-robot path planning with temporal logic constraints,” The International Journal of Robotics Research, vol. 32, no. 8,
+pp. 889–911, 2013.
+[17] Y. Kantaros and M. M. Zavlanos, “Sampling-based optimal control
+synthesis for multirobot systems under global temporal tasks,” IEEE
+Transactions on Automatic Control, vol. 64, no. 5, pp. 1916–1931, 2018.
+[18] ——, “Stylus*: A temporal logic optimal control synthesis algorithm for
+large-scale multi-robot systems,” The International Journal of Robotics
+Research, vol. 39, no. 7, pp. 812–836, 2020.
+[19] X. Luo and M. M. Zavlanos, “Temporal logic task allocation in heterogeneous multirobot systems,” IEEE Transactions on Robotics, vol. 38,
+no. 6, pp. 3602–3621, 2022.
+[20] Z. Chen and Z. Kan, “Real-time reactive task allocation and planning
+of large heterogeneous multi-robot systems with temporal logic specifications,” The International Journal of Robotics Research, vol. 44, no. 4,
+pp. 640–664, 2024.
+[21] P. Schillinger, M. Bürger, and D. V. Dimarogonas, “Decomposition
+of finite ltl specifications for efficient multi-agent planning,” in Distributed Autonomous Robotic Systems: The 13th International Symposium. Springer, 2018, pp. 253–267.
+[22] ——, “Simultaneous task allocation and planning for temporal logic
+goals in heterogeneous multi-robot systems,” The International Journal
+of Robotics Research, vol. 37, no. 7, pp. 818–838, 2018.
+
+[23] J. Liu, F. Li, X. Jin, and Y. Tang, “Distributed task allocation for multiagent systems: A submodular optimization approach,” arXiv preprint
+arXiv:2412.02146, 2024.
+[24] Z. Liu, M. Guo, W. Bao, and Z. Li, “Fast and adaptive multi-agent
+planning under collaborative temporal logic tasks via poset products,”
+Research, vol. 7, p. 0337, 2024.
+[25] Y. Zhu et al., “Dexter-llm: Dynamic and explainable coordination
+of multi-robot systems in unknown environments via large language
+models,” arXiv preprint arXiv:2508.14387, 2025.
+[26] I. Filippidis, D. V. Dimarogonas, and K. J. Kyriakopoulos, “Decentralized multi-agent control from local ltl specifications,” in 2012 IEEE 51st
+IEEE Conference on Decision and Control (CDC), 2012, pp. 6235–6240.
+[27] M. Guo and D. V. Dimarogonas, “Multi-agent plan reconfiguration under
+local ltl specifications,” The International Journal of Robotics Research,
+vol. 34, no. 2, pp. 218–235, 2015.
+[28] ——, “Distributed plan reconfiguration via knowledge transfer in multiagent systems under local ltl specifications,” in 2014 IEEE International
+Conference on Robotics and Automation (ICRA), 2014, pp. 4304–4309.
+[29] D. Tian, H. Fang, Q. Yang, and Y. Wei, “Decentralized motion planning
+for multiagent collaboration under coupled ltl task specifications,” IEEE
+Transactions on Systems, Man, and Cybernetics: Systems, vol. 52, no. 6,
+pp. 3602–3611, 2021.
+[30] Z. Chen, L. Li, and Z. Kan, “Distributed task allocation and planning
+under temporal logic and communication constraints,” IEEE Robotics
+and Automation Letters, vol. 9, no. 7, pp. 6536–6543, 2024.
+[31] C. H. Fua and S. S. Ge, “Cobos: Cooperative backoff adaptive scheme
+for multirobot task allocation,” IEEE Transactions on Robotics, vol. 21,
+no. 6, pp. 1168–1178, 2005.
+[32] S. Choudhury, J. K. Gupta, M. J. Kochenderfer, D. Sadigh, and J. Bohg,
+“Dynamic multi-robot task allocation under uncertainty and temporal
+constraints,” Autonomous Robots, vol. 46, no. 1, pp. 231–247, 2022.
+[33] V. C. Kalempa, L. Piardi, M. Limeira, and A. S. de Oliveira, “Multirobot preemptive task scheduling with fault recovery: A novel approach
+to automatic logistics of smart factories,” Sensors, vol. 21, no. 19, p.
+6536, 2021.
+[34] C. Belta, B. Yordanov, and E. A. Gol, Formal methods for discrete-time
+dynamical systems. Springer, 2017, vol. 89.
+[35] X. Luo, S. Xu, R. Liu, and C. Liu, “Decomposition-based hierarchical
+task allocation and planning for multi-robots under hierarchical temporal
+logic specifications,” IEEE Robotics and Automation Letters, 2024.
+[36] Z. Liu, M. Guo, and Z. Li, “Time minimization and online synchronization for multi-agent systems under collaborative temporal logic tasks,”
+Automatica, vol. 159, p. 111377, 2024.
+[37] C. Bettstetter, H. Hartenstein, and X. Pérez-Costa, “Stochastic properties
+of the random waypoint mobility model,” Wireless networks, vol. 10,
+no. 5, pp. 555–567, 2004.
+[38] P. Gastin and D. Oddoux, “Fast ltl to büchi automata translation,” in
+Computer Aided Verification, G. Berry, H. Comon, and A. Finkel, Eds.
+Berlin, Heidelberg: Springer Berlin Heidelberg, 2001, pp. 53–65.
+
+

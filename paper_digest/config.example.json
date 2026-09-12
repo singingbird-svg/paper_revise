@@ -1,0 +1,28 @@
+{
+  "date": "today",
+  "lookback_days": 365,
+  "required_keywords": "temporal logic|ltl|linear temporal logic",
+  "keywords": "multi-robot,multi-agent,task allocation",
+  "keyword_match_mode": "any",
+  "exclude_keywords": "biology,medical",
+  "max_per_source": 15,
+  "output": "reports/{date}.md",
+  "ieee_api_key_env": "PAPER_DIGEST_IEEE_API_KEY",
+  "semantic_scholar_api_key_env": "",
+  "gmail": {
+    "enabled": false,
+    "host": "imap.gmail.com",
+    "port": 993,
+    "username": "your_gmail@gmail.com",
+    "password_env": "PAPER_DIGEST_GMAIL_PASSWORD",
+    "folders": ["INBOX"],
+    "from_filters": [
+      "scholaralerts-noreply@google.com",
+      "googlealerts-noreply@google.com"
+    ],
+    "subject_keywords": [
+      "Google Scholar",
+      "Google Alerts"
+    ]
+  }
+}
